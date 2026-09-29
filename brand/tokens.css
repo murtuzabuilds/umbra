@@ -1,0 +1,12 @@
+/* Umbra design tokens. The palette is an eclipse: void, corona light, one violet signal. */
+:root{
+  --void:#05060A; --deep:#0A0C13; --raised:#10131D; --lift:#161A27; --line:#222738; --line2:#2E3448;
+  --ink:#ECEEF4; --ink2:#B4B9CA; --ink3:#7C8298; --ink4:#565C72;
+  --corona:#F5E6C8; --flare:#FFB347; --plasma:#8B7CFF; --plasma2:#B3A8FF;
+  --aurora:#3BE8B0; --ember:#FF5470; --amber:#FFB347;
+  --crit:#FF5470; --high:#FF8A4C; --med:#FFC857; --low:#6FD3A8;
+  --display:"Space Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:14px; --r2:20px;
+}
