@@ -1,91 +1,72 @@
-<p align="center"><img src="brand/umbra-mark.svg" width="120" alt="Umbra mark: an eclipse ringed by a corona of particles"></p>
+<p align="center"><img src="brand/umbra-mark.svg" width="120" alt="Umbra logo, an eclipse ringed by particles"></p>
 
 <h1 align="center">Umbra</h1>
-<p align="center"><b>AI that governs AI.</b><br>Find every AI tool and agent in the company. Stop data leaks before they happen. Turn shadow AI into the AI roadmap.</p>
-<p align="center"><a href="https://murtuzabuilds.github.io/umbra/"><b>Live console</b></a> · <a href="https://murtuzabuilds.github.io/umbra/case-study.html"><b>Case study</b></a> · 16 tests · no dependencies</p>
+<p align="center">Using AI to govern AI inside a company.</p>
+<p align="center"><a href="https://murtuzabuilds.github.io/umbra/"><b>Live console</b></a> · <a href="https://murtuzabuilds.github.io/umbra/case-study.html"><b>Case study</b></a></p>
 
-![Umbra Totality overview](docs/totality.webp)
+![Umbra overview screen](docs/totality.webp)
 
-## Why this exists
+Umbra is a concept product I designed and built. It shows a company every AI tool and agent its people are using, catches sensitive data before it is sent to them, and turns the unapproved tools it finds into a ranked list of where to invest in approved AI next.
 
-We have spent three years asking what AI can make. The harder question now is who governs the AI that is already everywhere.
+## Why I built it
 
-- **49%** of workers admit to using AI tools their employer never approved, and **63%** think that is fine when no approved option exists ([BlackFog survey via CIO, Jan 2026](https://www.cio.com/article/4124760/roughly-half-of-employees-are-using-unsanctioned-ai-tools-and-enterprise-leaders-are-major-culprits.html)).
-- The first wave of AI security startups was bought by platform vendors in 2024 and 2025. Those tools are built for the largest enterprises, and built to say no.
-- The EU AI Act's transparency duties apply from August 2026. High-risk duties were deferred to December 2027, not cancelled.
+A lot of people now use AI at work that their employer never approved. In a January 2026 survey of 2,000 workers, 49% said they had, and 63% said it was fine when no approved option existed ([BlackFog, via CIO](https://www.cio.com/article/4124760/roughly-half-of-employees-are-using-unsanctioned-ai-tools-and-enterprise-leaders-are-major-culprits.html)). Blocking tools doesn't really fix that. People just use them somewhere IT can't see.
 
-Security has been the department of no. In the AI era, no is how you lose.
+The early AI security startups were bought by large security vendors in 2024 and 2025, and their tools mostly focus on blocking. I wanted to try a different approach, closer to my background in digital transformation: protect the data, but also learn from what people are trying to do.
 
-## Three ideas that make Umbra different
+## Three ideas behind it
 
-1. **Shadow AI is demand, not deviance.** Every unapproved tool marks a job nobody equipped people for. Umbra's **Demand Map** turns shadow usage into a ranked AI transformation backlog for the CIO.
-2. **AI governs AI, but never enforces alone.** **Corona**, the AI layer, drafts policy from plain English, discovers unregistered AI endpoints, defends agents from injection and explains incidents. Enforcement stays deterministic: *AI proposes, rules dispose, people approve.*
-3. **Agents are the new insiders.** Every agent gets an identity, an owner and a **mandate**. Umbra checks every hop at the MCP gateway and computes each agent's **blast radius** through delegation.
+1. **Unapproved AI use shows what people need.** If a team keeps using an unapproved tool for a task, that is a sign they need an approved one. The Demand Map groups this by team and task and ranks where a tool would help most.
+2. **AI can help write the rules, but not enforce them.** Umbra's AI layer, Corona, drafts rules from plain English, spots unregistered AI services and summarises incidents. The actual block or allow decision comes from fixed rules that give the same answer every time, and a person approves any new rule.
+3. **Agents need owners and limits.** Each agent gets a named owner and a list of what it may do. Every call is checked against that list, and Umbra estimates how much data could be reached through an agent if it were compromised.
 
-## The console
+## What's in the console
 
 | | |
 |---|---|
-| **Totality**: how much AI is in view, the paved-road rate, leak prevention, SOC load, and Corona's morning brief | **Constellation**: every AI destination mapped by risk and use, with discovery from five signals |
+| **Totality**: how much AI use is visible, the share on approved tools, how much sensitive data was stopped, and open cases | **Constellation**: every AI service on one map, placed by risk and usage |
 | ![](docs/totality.webp) | ![](docs/constellation.webp) |
-| **Inspect**: validated detectors, redaction, and a rule trace for every decision. Paste your own text | **Agents**: the delegation graph, mandate violations, blast radius, quarantine and registration |
+| **Inspect**: check any text, see what gets masked and which rules applied | **Agents**: who calls what, calls outside the limits, owners and exposure |
 | ![](docs/inspect.webp) | ![](docs/agents.webp) |
-| **Policies + time machine**: write a rule in a sentence, replay 30 days before enforcing | **Incidents**: 888 alerts become 62 decisions, each narrated for analyst and employee |
+| **Policies**: write a rule in a sentence and replay the last 30 days before turning it on | **Incidents**: 888 raw alerts grouped into 62 cases, each with a short summary |
 | ![](docs/time-machine.webp) | ![](docs/incidents.webp) |
-| **Demand Map**: shadow AI as a Now / Next / Later roadmap | **Assurance**: controls mapped to the EU AI Act, ISO/IEC 42001, NIST AI RMF and SOC 2, with evidence pack and AI bill of materials |
+| **Demand Map**: where approved AI would help most, as a now, next and later list | **Assurance**: controls mapped to the EU AI Act, ISO/IEC 42001, NIST AI RMF and SOC 2, with exports |
 | ![](docs/demand.webp) | ![](docs/assurance.webp) |
 
-![Employee coaching](docs/coach.webp)
+![What an employee sees](docs/coach.webp)
 
-## The engine
+## The code
 
-Plain JavaScript modules in `src/`, pure and deterministic, so every rule is readable and tested.
+Plain JavaScript with no dependencies. The engine lives in `src/` and everything in it is tested.
 
-| Module | What it does |
+| File | What it does |
 |---|---|
-| `catalog.js` | AI service catalog and a risk score built only from verifiable vendor facts |
-| `detect.js` | Detectors with validators (Luhn, IBAN mod-97, SSN issuance rules), org dictionaries, stable redaction |
-| `policy.js` | Policy as data; the strictest matching rule wins; a full trace for every decision; the paved-road alternative |
-| `agents.js` | Agent identities and mandates, call checks, delegation depth, blast radius |
-| `corona.js` | The AI layer: plain-English policy compiler with round-trip, endpoint classifier, injection signals, incident narrator |
-| `triage.js` | Groups alerts by the decision a human makes; auto-closes what policy contained; residual-risk scoring |
-| `simulate.js` | The policy time machine |
-| `demand.js` | The Demand Map: team × job-to-be-done, shadow share, growth, projected hours |
-| `compliance.js` | Eight controls computed from live state, framework mappings, evidence pack |
-| `index.js` | `run()` ties it together; maturity model; `aibom()` exports a CycloneDX-style AI bill of materials |
+| `catalog.js` | The list of AI services, and a risk score based only on facts you can check about each vendor |
+| `detect.js` | Finds sensitive data and confirms matches (Luhn for cards, IBAN checksums, SSN rules), then masks it |
+| `policy.js` | Rules as data. The strictest matching rule wins, and every decision records which rules applied |
+| `agents.js` | Agent owners and limits, call checks, chain depth, and exposure through other agents |
+| `corona.js` | The AI layer: rule drafting, unregistered AI detection, checks for hidden instructions in agent messages, incident summaries |
+| `triage.js` | Groups alerts into cases and closes the ones rules already handled |
+| `simulate.js` | Replays past activity against a draft set of rules |
+| `demand.js` | The Demand Map |
+| `compliance.js` | Eight controls measured from live data, framework mappings and the evidence pack |
+| `index.js` | Runs everything, plus the maturity scale and the AI inventory export |
 
 ```bash
-npm test        # 16 tests, zero dependencies
-npx serve .     # open the console
+npm test      # 16 tests
+npx serve .   # open the console
 ```
 
-```js
-import { run, compilePolicy } from './src/index.js';
-const r = run();                       // 30 days of synthetic telemetry, fully governed
-r.metrics.preventionRate;              // share of sensitive events contained
-compilePolicy('Block health data from going to unapproved tools').readable;
-// → "Block when the content contains health data and the tool is not approved."
-```
+In this prototype, Corona's skills are simple local stand-ins so the demo runs offline and costs nothing. In a real product each one would call an AI model, limited to producing output in the same format, and it would still never make the final decision.
 
-Corona runs here as local, deterministic stand-ins so the demo works offline and free. In production each skill is a model call constrained to the same output schema, and it never sits on the enforcement path.
+## Business model (proposed)
 
-## Product principles
-
-1. **Light before law.** Discovery ships first, from logs the company already has.
-2. **Deterministic at the edge.** Same input, same decision, with a trace an auditor can read.
-3. **Coach before block.** Redact-and-send and a better road beat a wall.
-4. **Every agent has an owner.** Autonomy is granted, never assumed.
-5. **Evidence is a byproduct.** Compliance is a download, not a project.
-6. **Measure the paved road.** The north star is the share of AI work on approved tools.
-
-## Go to market, in one breath
-
-Regulated mid-market companies (500 to 5,000 people). Land with a free, read-only 48-hour **Shadow AI Scan** that produces a Constellation and a Demand Map; expand into **Govern** ($6 per employee per month), **Assure** (+$3) and **Agents** ($25 per agent per month). Proposed pricing; the full reasoning is in the [case study](https://murtuzabuilds.github.io/umbra/case-study.html).
+The target is regulated companies with 500 to 5,000 employees, such as insurers, fintechs, healthcare and legal firms. They would start with a free, read-only 48-hour scan that produces the AI map and the Demand Map. Paid plans would be Govern at $6 per employee per month, Assure at $3 more, and $25 per agent per month. The [case study](https://murtuzabuilds.github.io/umbra/case-study.html) has the full reasoning.
 
 ## Brand
 
-An eclipse: a dark disc, the AI you cannot see into, ringed by a corona of particles, the light Umbra brings. Void `#05060A`, Corona `#F5E6C8`, Flare `#FFB347`, Plasma `#8B7CFF`, Aurora `#3BE8B0`. Space Grotesk, Instrument Serif, JetBrains Mono. Tokens in `brand/tokens.css`; the mark is generated deterministically by `brand/mark.js`.
+The logo is an eclipse: a dark disc for the AI a company can't see, with a ring of particles for what Umbra shows. Colors are near-black `#05060A`, warm white `#F5E6C8`, amber `#FFB347`, violet `#8B7CFF` and green `#3BE8B0`. Fonts are Space Grotesk, Instrument Serif and JetBrains Mono.
 
 ---
 
-Umbra is a concept product, researched, designed and built by [Murtuza](https://github.com/murtuzabuilds). Kestrel Mutual and every vendor in the demo are fictional; all data is synthetic. Framework mappings are illustrative. MIT licensed.
+Built by [Murtuza](https://github.com/murtuzabuilds). Kestrel Mutual and all vendors in the demo are made up, and the data is generated. The framework mappings are for illustration. MIT licensed.
