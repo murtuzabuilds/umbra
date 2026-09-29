@@ -1,0 +1,9 @@
+{
+  "name": "umbra",
+  "version": "0.1.0",
+  "description": "Umbra: AI that governs AI. Discover shadow AI and agents, stop data leaks with deterministic policy, and turn shadow demand into an AI transformation roadmap.",
+  "type": "module",
+  "scripts": { "test": "node --test tests/*.test.js", "start": "npx --yes serve ." },
+  "author": "Murtuza",
+  "license": "MIT"
+}
