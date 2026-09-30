@@ -252,7 +252,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
   <h2 class="reveal">The mark is <em>an eclipse.</em></h2>
   <div class="cols c2" style="align-items:center">
     <div class="reveal" style="display:grid;place-items:center;padding:30px"><span id="bigmark"></span></div>
-    <div class="reveal"><p class="big" style="font-size:19px">The umbra is the darkest part of a shadow. The mark is a dark disc, standing for the AI a company cannot see, with a ring of particles around it, standing for what Umbra shows. The particles thin out away from the edge like a real eclipse, and a few are violet to suggest the signals Corona picks up. I built it from the same square particles as my personal logo so the two feel related. In motion it becomes a full eclipse, with light bleeding out from behind the disc and a line of text orbiting it with the three things Umbra does: see, govern, transform.</p></div>
+    <div class="reveal"><p class="big" style="font-size:19px">The umbra is the darkest part of a shadow. The mark is a dark disc, standing for the AI a company cannot see, with a ring of particles around it, standing for what Umbra shows. The particles thin out away from the edge like a real eclipse, and a few are violet to suggest the signals Corona picks up. I built it from the same square particles as my personal logo so the two feel related. In motion the corona turns, twinkles and leans toward your cursor, and a small flare circles the rim.</p></div>
   </div>
   <div class="palette" style="margin-top:30px">
 
@@ -318,7 +318,7 @@ document.getElementById('results-body').innerHTML = rows.map(([a, b, c, d]) => `
 const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.12 });
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-// hero: the Umbra eclipse (brand/eclipse.js). The corona brightens as the cursor comes near.
+// hero: the Umbra eclipse (brand/eclipse.js). The corona breathes, turns and leans toward the cursor.
 const cv = document.getElementById('eclipse'), cx = cv.getContext('2d');
 let W, H, D = Math.min(2, devicePixelRatio || 1), px = -1e4, py = -1e4, heat = 0, t0 = performance.now();
 const drawEclipse = makeUmbraEclipse(innerWidth < 700);
@@ -333,9 +333,9 @@ function frame(now) {
   cx.clearRect(0, 0, W, H);
   for (const [x, y, z] of stars) { cx.globalAlpha = (0.08 + z * 0.35) * (reduce ? 1 : 0.6 + 0.4 * Math.sin(t * (0.6 + z * 1.8) + z * 40)); cx.fillStyle = '#F5E6C8'; cx.fillRect(x * W, y * H, z > 0.9 ? 2 : 1, z > 0.9 ? 2 : 1); }
   cx.globalAlpha = 1;
-  const vh = Math.min(innerHeight, 900), R = Math.min(W * 0.13, vh * 0.085), X = W / 2, Y = Math.max(R * 2.3, vh * 0.25);
+  const vh = Math.min(innerHeight, 900), R = Math.min(W * 0.2, vh * 0.13), X = W / 2, Y = Math.max(150, vh * 0.24);
   heat += ((Math.hypot(px - X, py - Y) < R * 2.6 ? 1 : 0) - heat) * 0.05;
-  drawEclipse(cx, X, Y, R, t, heat, { wordR: 2.0 });
+  drawEclipse(cx, X, Y, R, t, heat, { lean: px > -1e3 ? [(px - X) / W * 2, (py - Y) / H * 2] : [0, 0] });
   if (!reduce) requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

@@ -65,7 +65,7 @@ The target is regulated companies with 500 to 5,000 employees, such as insurers,
 
 ## Brand
 
-The logo is an eclipse: a dark disc for the AI a company can't see, ringed by particles for what Umbra shows, built from the same square particles as my personal logo. In motion it becomes a full eclipse, with light bleeding out from behind the disc and a line of text orbiting it with the three things Umbra does: see, govern, transform. Those are also the three groups in the console's sidebar.
+The logo is an eclipse: a dark disc for the AI a company can't see, ringed by particles for what Umbra shows, built from the same square particles as my personal logo. In motion the corona turns, twinkles and leans toward your cursor, and a small flare circles the rim.
 
 Colors are Void `#05060A`, Corona `#F5E6C8`, Flare `#FFB347`, Plasma `#8B7CFF` and Aurora `#3BE8B0`. Fonts are Space Grotesk for the interface, Instrument Serif for voice and JetBrains Mono for data. The static mark is `brand/mark.js` and the animated one is `brand/eclipse.js`.
 
