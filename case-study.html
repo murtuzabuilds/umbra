@@ -252,7 +252,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
   <h2 class="reveal">The mark is <em>an eclipse.</em></h2>
   <div class="cols c2" style="align-items:center">
     <div class="reveal" style="display:grid;place-items:center;padding:30px"><span id="bigmark"></span></div>
-    <div class="reveal"><p class="big" style="font-size:19px">The umbra is the darkest part of a shadow. The mark is a dark disc, standing for the AI a company cannot see, with a ring of particles around it, standing for what Umbra shows. The particles thin out away from the edge like a real eclipse, and a few are violet to suggest the signals Corona picks up. I built it from the same square particles as my personal logo so the two feel related.</p></div>
+    <div class="reveal"><p class="big" style="font-size:19px">The umbra is the darkest part of a shadow. The mark is a total eclipse: a black disc for the AI a company cannot see into, and a corona of light bleeding out from behind it for what Umbra reveals. One bright flare sits on the rim, the moment something hidden becomes visible. The light is made of the same square particles as my personal logo, so the two feel related, and a few of them are violet for the signals Corona picks up. On the web the mark is alive: the corona moves, the flare breathes, and a line of text orbits it with the three things Umbra does. See, govern, transform.</p></div>
   </div>
   <div class="palette" style="margin-top:30px">
 
@@ -274,6 +274,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 <footer><div class="wrap"><div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap"><span>Umbra is a concept product I researched, designed and built. Kestrel Mutual and every vendor in the demo are made up, and all the data is generated.</span><span class="mono">Murtuza</span></div>
 <p class="src" style="margin-top:14px">Sources: <a href="https://www.cio.com/article/4124760/roughly-half-of-employees-are-using-unsanctioned-ai-tools-and-enterprise-leaders-are-major-culprits.html">CIO on the BlackFog shadow AI survey (Jan 2026)</a> · <a href="https://cyberscoop.com/check-point-lakera-acquistion-ai-security/">CyberScoop on Check Point and Lakera</a> · <a href="https://devidevs.com/blog/2026-03-19-ai-security-acquisition-wave">DeviDevs on the AI security acquisition wave</a> · <a href="https://www.joneswalker.com/en/insights/blogs/ai-law-blog/yes-august-2-still-matters-the-eu-approved-a-high-risk-ai-delay-but-most-trans.html?id=102nbon">Jones Walker on the EU AI Act omnibus timeline</a></p></div></footer>
 
+<script src="brand/eclipse.js"></script>
 <script type="module">
 import { markSVG } from './brand/mark.js';
 import * as U from './src/index.js';
@@ -317,38 +318,24 @@ document.getElementById('results-body').innerHTML = rows.map(([a, b, c, d]) => `
 const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.12 });
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-// hero: a living eclipse made of particles. The corona breathes and bends toward the cursor.
+// hero: the Umbra eclipse (brand/eclipse.js). The corona brightens as the cursor comes near.
 const cv = document.getElementById('eclipse'), cx = cv.getContext('2d');
-let W, H, D = Math.min(2, devicePixelRatio || 1), mx = 0, my = 0, t0 = performance.now();
-const N = innerWidth < 700 ? 900 : 2200;
+let W, H, D = Math.min(2, devicePixelRatio || 1), px = -1e4, py = -1e4, heat = 0, t0 = performance.now();
+const drawEclipse = makeUmbraEclipse(innerWidth < 700);
 let seed = 9; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-const parts = Array.from({ length: N }, () => { const f = Math.pow(rnd(), 2.4); return { a: rnd() * Math.PI * 2, f, s: 0.6 + (1 - f) * 1.8, hot: rnd() < 0.06, sp: (rnd() - 0.5) * 0.00006, ph: rnd() * 6.28 }; });
 const stars = Array.from({ length: 260 }, () => [rnd(), rnd(), rnd()]);
 function size() { W = cv.clientWidth; H = cv.clientHeight; cv.width = W * D; cv.height = H * D; cx.setTransform(D, 0, 0, D, 0, 0); }
 size(); addEventListener('resize', size);
-addEventListener('pointermove', e => { mx = (e.clientX / W - 0.5); my = (e.clientY / H - 0.5); });
+addEventListener('pointermove', e => { const r = cv.getBoundingClientRect(); px = e.clientX - r.left; py = e.clientY - r.top; });
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 function frame(now) {
-  const t = (now - t0) / 1000;
+  const t = reduce ? 4 : (now - t0) / 1000;
   cx.clearRect(0, 0, W, H);
-  for (const [x, y, z] of stars) { cx.fillStyle = `rgba(245,230,200,${0.08 + z * 0.35})`; cx.fillRect(x * W, y * H, z > 0.9 ? 2 : 1, z > 0.9 ? 2 : 1); }
-  const R = Math.min(W * 0.2, Math.min(innerHeight, 900) * 0.13), X = W / 2, Y = Math.max(150, Math.min(innerHeight, 900) * 0.24);
-  const g = cx.createRadialGradient(X, Y, R * 0.9, X, Y, R * 2.6);
-  g.addColorStop(0, 'rgba(245,230,200,.35)'); g.addColorStop(0.25, 'rgba(255,179,71,.08)'); g.addColorStop(1, 'rgba(255,179,71,0)');
-  cx.fillStyle = g; cx.beginPath(); cx.arc(X, Y, R * 2.6, 0, Math.PI * 2); cx.fill();
-  for (const p of parts) {
-    const a = p.a + (reduce ? 0 : t * (0.02 + p.sp * 400));
-    const pull = Math.cos(a - Math.atan2(my, mx)) * Math.hypot(mx, my) * 0.9;
-    const breath = reduce ? 0 : Math.sin(t * 0.8 + p.ph) * 0.05;
-    const d = R * (1.06 + p.f * (1.25 + breath + Math.max(0, pull) * 0.8));
-    const x = X + Math.cos(a) * d, y = Y + Math.sin(a) * d;
-    cx.globalAlpha = (1 - p.f) * 0.9 + 0.05;
-    cx.fillStyle = p.hot ? '#8B7CFF' : '#F5E6C8';
-    cx.fillRect(x, y, p.s, p.s);
-  }
+  for (const [x, y, z] of stars) { cx.globalAlpha = (0.08 + z * 0.35) * (reduce ? 1 : 0.6 + 0.4 * Math.sin(t * (0.6 + z * 1.8) + z * 40)); cx.fillStyle = '#F5E6C8'; cx.fillRect(x * W, y * H, z > 0.9 ? 2 : 1, z > 0.9 ? 2 : 1); }
   cx.globalAlpha = 1;
-  cx.strokeStyle = 'rgba(245,230,200,.95)'; cx.lineWidth = 1.4; cx.beginPath(); cx.arc(X, Y, R * 1.02, 0, Math.PI * 2); cx.stroke();
-  cx.fillStyle = '#05060A'; cx.beginPath(); cx.arc(X, Y, R, 0, Math.PI * 2); cx.fill();
+  const vh = Math.min(innerHeight, 900), R = Math.min(W * 0.13, vh * 0.085), X = W / 2, Y = Math.max(R * 2.3, vh * 0.25);
+  heat += ((Math.hypot(px - X, py - Y) < R * 2.6 ? 1 : 0) - heat) * 0.05;
+  drawEclipse(cx, X, Y, R, t, heat, { wordR: 2.0 });
   if (!reduce) requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

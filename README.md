@@ -1,4 +1,4 @@
-<p align="center"><img src="brand/umbra-mark.svg" width="120" alt="Umbra logo, an eclipse ringed by particles"></p>
+<p align="center"><img src="brand/umbra-mark.svg" width="120" alt="Umbra logo, a total eclipse with light bleeding out from behind a black disc"></p>
 
 <h1 align="center">Umbra</h1>
 <p align="center">Using AI to govern AI inside a company.</p>
@@ -65,7 +65,9 @@ The target is regulated companies with 500 to 5,000 employees, such as insurers,
 
 ## Brand
 
-The logo is an eclipse: a dark disc for the AI a company can't see, with a ring of particles for what Umbra shows. Colors are near-black `#05060A`, warm white `#F5E6C8`, amber `#FFB347`, violet `#8B7CFF` and green `#3BE8B0`. Fonts are Space Grotesk, Instrument Serif and JetBrains Mono.
+The logo is a total eclipse. The black disc is the AI a company can't see into, the corona bleeding out from behind it is what Umbra reveals, and the single flare on the rim is the moment something hidden becomes visible. The light is made of the same square particles as my personal logo. On the web the mark moves, and a line of text orbits it with the three things Umbra does: see, govern, transform. Those are also the three groups in the console's sidebar.
+
+Colors are Void `#05060A`, Corona `#F5E6C8`, Flare `#FFB347`, Plasma `#8B7CFF` and Aurora `#3BE8B0`. Fonts are Space Grotesk for the interface, Instrument Serif for voice and JetBrains Mono for data. The static mark is `brand/mark.js` and the animated one is `brand/eclipse.js`.
 
 ---
 
