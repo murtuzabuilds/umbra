@@ -35,6 +35,19 @@ The early AI security startups were bought by large security vendors in 2024 and
 
 ![What an employee sees](docs/coach.webp)
 
+## Where Umbra stops
+
+Umbra is a governance product. It decides which AI gets into the company and what data may reach it. It does not run the work. Once an agent is approved, with a named owner and a list of what it may touch, someone still has to run it day to day, sign off its risky calls and answer for its output. That is a different job for a different person, and I built it as a separate product, [Outpost](https://github.com/murtuzabuilds/outpost).
+
+| | Umbra | Outpost |
+|---|---|---|
+| The job | Governance | Operations |
+| Who uses it | The security or risk lead | The operations lead who runs a crew of agents |
+| Looks at | Every AI tool across the company, and the content flowing into it | One crew, one action at a time. It never reads the content |
+| Timescale | Weeks and quarters | Seconds and minutes |
+
+They meet at one handoff: an approved agent with a named owner and a list of what it may touch. Both demos use the same fictional insurer, Kestrel Mutual.
+
 ## The code
 
 Plain JavaScript with no dependencies. The engine lives in `src/` and everything in it is tested.
