@@ -1,6 +1,6 @@
 // Umbra to Outpost: the one handoff between the two products.
 //
-// Umbra decides which agent may exist, who owns it and what it may touch. Outpost runs it.
+// Umbra decides what AI gets in: which agent may exist, who owns it, which approved model it runs on and what it may touch. Outpost runs it.
 // When a person approves an agent here, Umbra writes a small, fixed-shape record that Outpost
 // reads: localStorage `umbra.outpost.handoff` and a `#dock=` link in the URL.
 // Everything below is pure so the shape can be tested without a browser.
@@ -48,6 +48,9 @@ export const SENSITIVE_SEEN = ['CONF'];
 export const SEEN_WITH_CONF = 'It was seen with confidential data. Off unless you are sure.';
 
 export const MONEY_TOOLS = ['payments.pay', 'payments.refund', 'ledger.write'];
+/** Models an agent may run on to get in: approved services that serve models (catalog ids and the names Outpost shows). */
+export const AGENT_MODELS = { aster: 'Aster Enterprise', 'nova-api': 'Nova Model API' };
+export const DEFAULT_MODEL = 'aster';
 
 /**
  * What Umbra watched agents do (MCP gateway tool names) mapped to Outpost permissions.
@@ -69,7 +72,7 @@ export const OBSERVED_TO_OUTPOST = {
   'calendar.write': 'calendar.write',
 };
 
-const CAPS = { name: 16, job: 60, owner: 48, team: 32, umbraName: 60, rule: 120, rules: 6, limit: 1_000_000 };
+const CAPS = { model: 40, name: 16, job: 60, owner: 48, team: 32, umbraName: 60, rule: 120, rules: 6, limit: 1_000_000 };
 
 const clip = (s, n) => String(s ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
 
@@ -109,9 +112,10 @@ export function suggestTools(observed = []) {
 }
 
 /** The short rules Outpost shows on the bot's badge, written from what the person set. */
-export function rulesFor({ owner, tools, limit, withheld = [] }) {
+export function rulesFor({ owner, tools, limit, withheld = [], model }) {
   const t = cleanTools(tools), out = [];
   out.push(`${clip(owner, CAPS.owner) || 'A named person'} owns it and answers for it`);
+  if (model) out.push(`Runs only on ${clip(model, CAPS.model)}, an approved model`);
   out.push(t.length ? `May use only: ${t.map(x => OUTPOST_TOOLS[x].toLowerCase()).join(', ')}` : 'May use no tools until its owner adds one');
   const money = t.some(x => MONEY_TOOLS.includes(x));
   out.push(money ? (limit > 0 ? `Moves up to $${Number(limit).toLocaleString('en-US')} alone, more needs a person` : 'Every money move needs a person') : 'Moves no money');
@@ -120,7 +124,8 @@ export function rulesFor({ owner, tools, limit, withheld = [] }) {
 }
 
 /** Build one AGENT record in the fixed contract shape, with every field clipped and checked. */
-export function buildAgent({ agent, name, job, owner, team, tools, limit = 0, approvedAt = new Date(), withheld = [], rules } = {}) {
+export function buildAgent({ agent, name, job, owner, team, tools, limit = 0, approvedAt = new Date(), withheld = [], rules, model = DEFAULT_MODEL } = {}) {
+  const modelName = AGENT_MODELS[model] || AGENT_MODELS[DEFAULT_MODEL];
   const umbraName = clip(agent?.name, CAPS.umbraName) || 'Agent';
   const t = cleanTools(tools);
   const lim = Math.max(0, Math.min(CAPS.limit, Math.round(Number(limit) || 0)));
@@ -136,7 +141,8 @@ export function buildAgent({ agent, name, job, owner, team, tools, limit = 0, ap
     approvedAt: iso,
     source: 'umbra',
     umbraName,
-    rules: (Array.isArray(rules) ? rules : rulesFor({ owner, tools: t, limit: lim, withheld })).slice(0, CAPS.rules).map(r => clip(r, CAPS.rule)).filter(Boolean),
+    model: modelName,
+    rules: (Array.isArray(rules) ? rules : rulesFor({ owner, tools: t, limit: lim, withheld, model: modelName })).slice(0, CAPS.rules).map(r => clip(r, CAPS.rule)).filter(Boolean),
   };
 }
 

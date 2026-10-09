@@ -382,7 +382,7 @@ V.agents = () => {
       ${U.AGENTS.map(a => { const b = R.agents.blast.find(x => x.agent === a.id); const st = a.registered ? 'approved' : 'unowned';
         const tag = a.registered ? `<span class="row" style="gap:6px"><span class="tag ok">${S.approved.has(a.id) ? 'approved today · sent to Outpost' : 'approved · Outpost crew'}</span><span class="tag v" title="How much data could be reached through it if it were compromised">exposure ${b.score}</span></span>` : a.paused ? '<span class="tag">paused</span>' : '<span class="tag crit">unowned</span>';
         return `<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div class="row" style="justify-content:space-between"><b style="font-weight:500"><i class="dot" style="background:${a.paused ? 'var(--ink4)' : SC[st].color}${st === 'unowned' ? `;box-shadow:0 0 0 2px var(--raised),0 0 0 3px ${SC.unowned.color}` : ''}"></i>${esc(a.name)} <span style="color:var(--ink3);font-weight:400">· ${esc(a.job || '')}</span></b>${tag}</div>
-        <div style="font-size:12.5px;color:var(--ink3);margin-top:3px">${a.registered ? `Owner ${esc(a.owner)} · ${esc(a.team)} · may use ${a.mandate.tools.join(', ') || 'no tools'} · data ${a.mandate.data.join(', ') || 'none'}${b.reaches.length ? ` · can reach ${b.reaches.length} more agent${b.reaches.length > 1 ? 's' : ''} and inherits ${b.data.join(', ')}` : ''}` : `A ${esc(a.team)} agent running on ${esc(U.SERVICES.find(s => s.id === a.platform)?.name || a.platform)} with no owner. Umbra saw it use ${observedCalls(a.id).map(c => c.tool).join(', ')}: it drafts emails to customers, and it posts files to the web with confidential data in them.${a.paused ? ' <b style="color:var(--ink2);font-weight:500">Paused by you: its calls are refused.</b>' : ''}`}</div>
+        <div style="font-size:12.5px;color:var(--ink3);margin-top:3px">${a.registered ? `Runs on ${esc(U.SERVICES.find(x => x.id === a.model)?.name || a.model)} · owner ${esc(a.owner)} · ${esc(a.team)} · may use ${a.mandate.tools.join(', ') || 'no tools'} · data ${a.mandate.data.join(', ') || 'none'}${b.reaches.length ? ` · can reach ${b.reaches.length} more agent${b.reaches.length > 1 ? 's' : ''} and inherits ${b.data.join(', ')}` : ''}` : `A ${esc(a.team)} agent running on ${esc(U.SERVICES.find(s => s.id === a.platform)?.name || a.platform)} with no owner. Umbra saw it use ${observedCalls(a.id).map(c => c.tool).join(', ')}: it drafts emails to customers, and it posts files to the web with confidential data in them.${a.paused ? ' <b style="color:var(--ink2);font-weight:500">Paused by you: its calls are refused.</b>' : ''}`}</div>
         ${S.approved.has(a.id) ? (() => { const h = S.approved.get(a.id); return `<div style="font-size:12.5px;color:var(--ink2);margin-top:6px">Approved by you and sent to Outpost as <b style="font-weight:500">${esc(h.name)}</b> (${esc(h.job)}), ${h.limit ? `may move up to $${fmt(h.limit)} alone` : 'moves no money alone'}. Sending data outside the company is ${h.tools.includes('data.export') ? 'allowed' : 'still not allowed'}.</div><div class="row" style="margin-top:8px"><button class="btn sm" data-outpost="${a.id}">Open in Outpost again ↗</button></div>`; })() : ''}
         ${a.registered ? '' : `<div class="row" style="margin-top:10px"><button class="btn sm primary" data-review="${a.id}">Review ${esc(a.name)}</button></div>`}</div>`; }).join('')}</div>
   </div>
@@ -539,7 +539,7 @@ function approveModal(id) {
   const perm = (t, ticked, note, reason) => `<label class="perm"><input type="checkbox" name="ap-tool" value="${t}" ${ticked ? 'checked' : ''}><span><b>${esc(H.OUTPOST_TOOLS[t])}</b> <span class="mono">${t}</span>${note ? `<small>${note}</small>` : ''}${reason ? `<small class="risky">${esc(reason)}</small>` : ''}</span></label>`;
   modal(`<span class="ai-badge" style="color:var(--aurora)">Umbra → Outpost</span>
     <h3 style="font-size:20px;color:var(--ink);margin-top:6px">Approve ${esc(a.name)} with limits</h3>
-    <p class="sub">Umbra decides who owns it and what it may touch. Outpost runs it day to day. Nothing is sent until you confirm.</p>
+    <p class="sub">Umbra decides what AI gets in: who owns this agent, which approved model it runs on and what it may touch. Outpost runs it day to day. Nothing is sent until you confirm.</p>
     <form id="ap-form" data-agent="${id}" onsubmit="return false">
     <div class="ap-seen"><b>What Umbra saw</b>${calls.map(callLine).join('')}</div>
     <div class="grid g2 ap-fields">
@@ -547,6 +547,7 @@ function approveModal(id) {
       <label>Money it may move alone (USD)<input type="number" id="ap-limit" min="0" max="1000000" step="50" value="0" inputmode="numeric"><small style="color:var(--ink4)">Only matters with a money permission. Above it, the move waits for a person's yes in Outpost.</small></label>
       <label>Bot name in Outpost<input type="text" id="ap-name" maxlength="16" value="${H.DEFAULT_BOT_NAME}"></label>
       <label>Job<input type="text" id="ap-job" maxlength="60" value="${esc(a.job || 'General help')}"></label>
+      <label>Runs on (approved models only)<select id="ap-model">${Object.entries(H.AGENT_MODELS).map(([k, n]) => `<option value="${k}" ${k === H.DEFAULT_MODEL ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select><small style="color:var(--ink4)">${a.model && !H.AGENT_MODELS[a.model] ? `It was seen running on ${esc(U.SERVICES.find(x => x.id === a.model)?.name || a.model)}, which is not approved. To get in, it must run on an approved model.` : 'Only models Umbra has approved are offered.'}</small></label>
     </div>
     <h3 style="margin-top:14px">Permissions (become its badge in Outpost) <small>FROM WHAT IT WAS SEEN DOING</small></h3>
     ${sug.suggested.map(x => perm(x.tool, x.ticked, `Seen as ${esc(seenAs(x.tool))}.${x.ticked ? '' : ' Left unticked.'}`, x.reason)).join('') || '<p class="sub">It was not seen using any tool Outpost knows.</p>'}
@@ -564,7 +565,7 @@ function approveRecord(id) {
   const tools = [...document.querySelectorAll('[name=ap-tool]:checked')].map(i => i.value);
   const sel = $('#ap-owner'), owner = sel.value, team = sel.selectedOptions[0]?.dataset.team || '';
   const withheld = sug.suggested.filter(x => !x.ticked && !tools.includes(x.tool)).map(x => x.tool);
-  return H.buildAgent({ agent: { id: a.id, name: a.name }, name: $('#ap-name').value, job: $('#ap-job').value, owner, team, tools, limit: $('#ap-limit').value, withheld });
+  return H.buildAgent({ agent: { id: a.id, name: a.name }, name: $('#ap-name').value, job: $('#ap-job').value, owner, team, tools, limit: $('#ap-limit').value, withheld, model: $('#ap-model').value });
 }
 function approvePreview() { const f = $('#ap-form'); if (!f || !$('#ap-json')) return; $('#ap-json').textContent = JSON.stringify(approveRecord(f.dataset.agent), null, 2); }
 

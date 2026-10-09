@@ -6,7 +6,7 @@
 
 ![Umbra overview screen](docs/totality.webp)
 
-Umbra is a concept product I designed and built. It shows a company every AI tool and agent its people use, stops sensitive data from reaching the risky ones, and lets a person give each agent an owner and limits. AI drafts rules; fixed rules and people decide. It also turns the unapproved tools it finds into a ranked list of where to invest in approved AI next.
+Umbra is a concept product I designed and built. It governs every AI tool and model a company uses: what is allowed, what data reaches it, and which agents get in. AI drafts rules; fixed rules and people decide. It also turns the unapproved tools it finds into a ranked list of where to invest in approved AI next.
 
 ## Why I built it
 

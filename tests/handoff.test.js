@@ -38,7 +38,7 @@ test('defaults come from what the agent was seen doing, risky ones unticked', ()
 
 test('an agent record has the exact contract shape', () => {
   const a = make();
-  assert.deepEqual(Object.keys(a), ['id', 'name', 'job', 'owner', 'team', 'tools', 'limit', 'approvedAt', 'source', 'umbraName', 'rules']);
+  assert.deepEqual(Object.keys(a), ['id', 'name', 'job', 'owner', 'team', 'tools', 'limit', 'approvedAt', 'source', 'umbraName', 'model', 'rules']);
   assert.equal(a.id, 'umb-unknown-7f3');
   assert.match(a.id, /^umb-[a-z0-9-]+$/);
   assert.equal(a.source, 'umbra');

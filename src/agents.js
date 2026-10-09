@@ -4,24 +4,25 @@
 
 // The eight approved agents are the Outpost crew: same name, job, owner and team in both products.
 // Agent 7f3 is the one Umbra found with no owner: a Marketing agent that drafts emails to customers.
+// `model` is the AI service each agent runs on (catalog id). The crew runs on approved models; Agent 7f3 was seen on Loopwork, which is not.
 export const AGENTS = [
-  { id: 'ag-claims-intake', name: 'Pip', job: 'Claims intake', owner: 'Rosa Chen', team: 'Claims', platform: 'relay', registered: true,
+  { id: 'ag-claims-intake', model: 'aster', name: 'Pip', job: 'Claims intake', owner: 'Rosa Chen', team: 'Claims', platform: 'relay', registered: true,
     mandate: { tools: ['crm.read', 'claims.create', 'docs.parse'], data: ['PII'], callsAgents: ['ag-fraud-screen'], maxCallsPerHour: 400 } },
-  { id: 'ag-fraud-screen', name: 'Sable', job: 'Fraud screening', owner: 'Dev Okoye', team: 'Claims', platform: 'relay', registered: true,
+  { id: 'ag-fraud-screen', model: 'nova-api', name: 'Sable', job: 'Fraud screening', owner: 'Dev Okoye', team: 'Claims', platform: 'relay', registered: true,
     mandate: { tools: ['claims.read', 'score.fraud'], data: ['PII', 'FIN'], callsAgents: [], maxCallsPerHour: 600 } },
-  { id: 'ag-refunds', name: 'Juno', job: 'Refunds and billing', owner: 'Priya Patel', team: 'Finance', platform: 'relay', registered: true,
+  { id: 'ag-refunds', model: 'aster', name: 'Juno', job: 'Refunds and billing', owner: 'Priya Patel', team: 'Finance', platform: 'relay', registered: true,
     mandate: { tools: ['billing.read', 'refunds.issue'], data: ['PII', 'FIN'], callsAgents: [], maxCallsPerHour: 150 } },
-  { id: 'ag-care-replies', name: 'Kite', job: 'Customer replies', owner: 'Hana Lopez', team: 'Customer Care', platform: 'relay', registered: true,
+  { id: 'ag-care-replies', model: 'aster', name: 'Kite', job: 'Customer replies', owner: 'Hana Lopez', team: 'Customer Care', platform: 'relay', registered: true,
     mandate: { tools: ['crm.read', 'mail.send'], data: ['PII'], callsAgents: [], maxCallsPerHour: 300 } },
-  { id: 'ag-sales-assist', name: 'Bolt', job: 'Broker assist', owner: 'Wren Hayes', team: 'Underwriting', platform: 'relay', registered: true,
+  { id: 'ag-sales-assist', model: 'aster', name: 'Bolt', job: 'Broker assist', owner: 'Wren Hayes', team: 'Underwriting', platform: 'relay', registered: true,
     mandate: { tools: ['crm.read', 'quotes.draft', 'mail.draft'], data: ['PII'], callsAgents: ['ag-claims-intake'], maxCallsPerHour: 200 } },
-  { id: 'ag-finance-close', name: 'Moss', job: 'Month-end close', owner: 'Omar Ito', team: 'Finance', platform: 'nova-api', registered: true,
+  { id: 'ag-finance-close', model: 'nova-api', name: 'Moss', job: 'Month-end close', owner: 'Omar Ito', team: 'Finance', platform: 'nova-api', registered: true,
     mandate: { tools: ['ledger.read', 'recon.run'], data: ['FIN'], callsAgents: [], maxCallsPerHour: 120 } },
-  { id: 'ag-scheduling', name: 'Dot', job: 'Scheduling', owner: 'Mateo Diaz', team: 'Claims', platform: 'relay', registered: true,
+  { id: 'ag-scheduling', model: 'aster', name: 'Dot', job: 'Scheduling', owner: 'Mateo Diaz', team: 'Claims', platform: 'relay', registered: true,
     mandate: { tools: ['calendar.write'], data: [], callsAgents: [], maxCallsPerHour: 120 } },
-  { id: 'ag-records', name: 'Rook', job: 'Records and reports', owner: 'Lena Fischer', team: 'Data Science', platform: 'nova-api', registered: true,
+  { id: 'ag-records', model: 'nova-api', name: 'Rook', job: 'Records and reports', owner: 'Lena Fischer', team: 'Data Science', platform: 'nova-api', registered: true,
     mandate: { tools: ['records.read', 'reports.build'], data: ['PII', 'FIN'], callsAgents: [], maxCallsPerHour: 100 } },
-  { id: 'ag-unknown-7f3', name: 'Agent 7f3', job: 'Drafts emails to customers', owner: null, team: 'Marketing', platform: 'loopwork', registered: false,
+  { id: 'ag-unknown-7f3', model: 'loopwork', name: 'Agent 7f3', job: 'Drafts emails to customers', owner: null, team: 'Marketing', platform: 'loopwork', registered: false,
     mandate: { tools: [], data: [], callsAgents: [], maxCallsPerHour: 0 } },
 ];
 

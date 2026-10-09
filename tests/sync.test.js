@@ -121,3 +121,17 @@ test('the default map shows all 15 sample services and Agent 7f3, with their rea
   for (const r of R.inventory) { const p = P.find(q => q.n === (r.service?.name || r.host)); assert.ok(p, r.key); assert.equal(p.g, toolStatus(r)); }
   assert.deepEqual(P.filter(p => p.g === 'unowned').map(p => p.n), ['Agent 7f3']);
 });
+
+test('every agent runs on a model; the crew on approved ones, and the handoff carries the model', async () => {
+  const { AGENTS } = await import('../src/agents.js');
+  const { sanctioned } = (await import('../src/org.js')).ORG;
+  const H = await import('../src/handoff.js');
+  for (const a of AGENTS) assert.ok(a.model, `${a.name} has a model`);
+  for (const a of AGENTS.filter(x => x.registered)) assert.ok(H.AGENT_MODELS[a.model], `${a.name} runs on an approved model`);
+  assert.ok(!H.AGENT_MODELS[AGENTS.find(a => a.id === 'ag-unknown-7f3').model], 'Agent 7f3 was seen on an unapproved model');
+  const rec = H.buildAgent({ agent: { id: 'ag-unknown-7f3', name: 'Agent 7f3' }, name: 'Fern', owner: 'Gabe Lopez', tools: ['email.send'] });
+  assert.equal(rec.model, 'Aster Enterprise');
+  assert.ok(rec.rules.some(r => /Runs only on Aster Enterprise/.test(r)));
+  assert.equal(H.buildAgent({ agent: { id: 'x', name: 'X' }, owner: 'A', tools: [], model: 'loopwork' }).model, 'Aster Enterprise', 'an unapproved model is never sent');
+  if (sanctioned) for (const k of Object.keys(H.AGENT_MODELS)) assert.ok(sanctioned.includes(k));
+});
