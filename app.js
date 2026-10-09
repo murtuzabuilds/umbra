@@ -296,7 +296,7 @@ V['ai-map'] = () => `
   </div>
   <div class="hdr"><h2>Inventory</h2><p>Click a service to see why it scored the way it did.</p></div>
   <div class="card" style="padding:6px 8px;overflow-x:auto"><table><thead><tr><th>Service</th><th>Category</th><th>Status</th><th>Risk</th><th class="hide-sm">People</th><th class="hide-sm">Teams</th><th>Events</th><th class="hide-sm">Sensitive</th></tr></thead><tbody>
-  ${R.inventory.map(r => `<tr class="click" data-svc="${esc(r.key)}"><td><b style="font-weight:500">${esc(r.service?.name || r.host)}</b><div style="font:11px var(--mono);color:var(--ink4)">${esc(r.service?.vendor || 'not in the catalog')}</div></td><td>${esc(U.CATEGORIES[r.service?.category] || 'Unknown')}</td><td>${statusTag(U.toolStatus(r))}</td><td><span class="tag ${sevClass(r.band === 'critical' ? 'critical' : r.band)}">${r.risk}</span></td><td class="hide-sm">${r.users}</td><td class="hide-sm">${r.teams.length}</td><td>${r.events}</td><td class="hide-sm">${r.sensitive}</td></tr>`).join('')}
+  ${R.inventory.map(r => `<tr class="click" data-svc="${esc(r.key)}"><td><b style="font-weight:500">${esc(r.service?.name || r.host)}</b><div style="font:11px var(--mono);color:var(--ink4)">${esc(r.service?.vendor || 'not in the catalog')}</div></td><td>${esc(U.CATEGORIES[r.service?.category] || 'Unknown')}</td><td>${statusTag(U.toolStatus(r))}</td><td><span class="tag ${sevClass(r.band === 'high' ? 'critical' : r.band === 'elevated' ? 'high' : r.band)}">${r.risk}</span></td><td class="hide-sm">${r.users}</td><td class="hide-sm">${r.teams.length}</td><td>${r.events}</td><td class="hide-sm">${r.sensitive}</td></tr>`).join('')}
   </tbody></table></div>`;
 
 const statusTag = st => `<span class="tag st-${st}">${SC[st].word}</span>`;

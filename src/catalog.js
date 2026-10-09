@@ -58,4 +58,5 @@ export function serviceRisk(s) {
   return Math.max(0, Math.min(100, r));
 }
 
-export const riskBand = r => (r >= 70 ? 'critical' : r >= 50 ? 'high' : r >= 30 ? 'medium' : 'low');
+/** Risk band words match the status words: 70 or more is "high risk" everywhere in Umbra. */
+export const riskBand = r => (r >= 70 ? 'high' : r >= 50 ? 'elevated' : r >= 30 ? 'medium' : 'low');
