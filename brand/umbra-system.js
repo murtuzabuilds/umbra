@@ -33,21 +33,21 @@ const orbAt=o=>{ const i=Math.max(0,Math.min(4.999,o)), a=Math.floor(i), t=i-a, 
 const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 let next=1.5, pick=0, story=o.firstStory||6; let last=performance.now(), T=0;
 function f(now){const dt=Math.min(.05,(now-last)/1000); last=now; x.clearRect(0,0,W,H);
- for(const [a,b,c] of S){ const sp=(6+c*22)*T, sx=((a*W-VX*sp)%W+W)%W, sy=((b*H-VY*sp)%H+H)%H; x.globalAlpha=(.05+c*.35)*(.55+.45*Math.sin(T*(.6+c*1.8)+c*40));x.fillStyle='#F5E6C8';x.fillRect(sx,sy,c>.85?1.5:1,c>.85?1.5:1)} x.globalAlpha=1;
+ for(const [a,b,c] of S){ const sp=(3+c*11)*T, sx=((a*W-VX*sp)%W+W)%W, sy=((b*H-VY*sp)%H+H)%H; x.globalAlpha=(.05+c*.35)*(.55+.45*Math.sin(T*(.6+c*1.8)+c*40));x.fillStyle='#F5E6C8';x.fillRect(sx,sy,c>.85?1.5:1,c>.85?1.5:1)} x.globalAlpha=1;
  const {X,Y,Rh,narrow}=o.geom(W,H);
- const near=Math.hypot(mx-X,my-Y)<Rh*6; heat+=((near?1:0)-heat)*.04; T+=dt*(1+heat*.9);
+ const near=Math.hypot(mx-X,my-Y)<Rh*6; heat+=((near?1:0)-heat)*.04; T+=dt*(1+heat*.5);
  const rin=Rh*1.5, rout=Rh*2.85;
  let g=x.createRadialGradient(X,Y,Rh*.8,X,Y,Rh*5); g.addColorStop(0,`rgba(255,190,110,${.16+heat*.08})`); g.addColorStop(.35,'rgba(139,124,255,.07)'); g.addColorStop(1,'rgba(5,6,10,0)'); x.fillStyle=g; x.fillRect(X-Rh*5,Y-Rh*5,Rh*10,Rh*10);
  /* the story: every ten seconds or so, pull a shadow tool inward and govern it */
- story-=dt; if(o.story!==false&&story<=0&&!P.some(p=>p.cap>=0)){ const sh=P.filter(p=>p.g<.5&&p.al>.99); if(sh.length){ const p=sh[Math.floor(r()*sh.length)]; p.cap=0; p.o0=p.o; p.g0=p.g; } story=11; }
+ story-=dt; if(o.story!==false&&story<=0&&!P.some(p=>p.cap>=0)){ const sh=P.filter(p=>p.g<.5&&p.al>.99); if(sh.length){ const p=sh[Math.floor(r()*sh.length)]; p.cap=0; p.o0=p.o; p.g0=p.g; } story=16; }
  for(const p of P){
-   if(p.cap>=0){ p.cap+=dt/5; const e=ease(Math.min(1,p.cap)); p.o=p.o0+(1.3-p.o0)*e; p.g=p.g0+(2-p.g0)*e; p.beam=Math.max(p.beam,Math.min(1,p.cap*3)*(p.cap<1.1?1:0));
+   if(p.cap>=0){ p.cap+=dt/7; const e=ease(Math.min(1,p.cap)); p.o=p.o0+(1.3-p.o0)*e; p.g=p.g0+(2-p.g0)*e; p.beam=Math.max(p.beam,Math.min(1,p.cap*3)*(p.cap<1.1?1:0));
      if(p.cap>=2.2){ p.al-=dt; if(p.al<=0){ /* a new shadow tool appears on the edge */ let n; do{ n=POOL[poolI++%POOL.length]; }while(P.some(q=>q.n===n)); Object.assign(p,{n,g:0,o:4+r(),cap:-1,al:0,h:[],a:r()*6.283}); p.fade=1; } } }
    else if(p.fade){ p.al=Math.min(1,p.al+dt*.6); if(p.al>=1) p.fade=0; } }
  /* planets: positions and depth */
- const pl=P.map(p=>{ const [k,tl,oy]=orbAt(p.o), w=.3*Math.pow(3.1/k,1.5)*(1-heat*.35); p.a+=dt*w*(p.g<.5?1+.25*Math.sin(T*.7+p.ph):1);
+ const pl=P.map(p=>{ const [k,tl,oy]=orbAt(p.o), w=.065*Math.pow(3.1/k,1.5)*(1-heat*.35); p.a+=dt*w*(p.g<.5?1+.25*Math.sin(T*.7+p.ph):1);
    const ex=Math.cos(p.a)*Rh*k, ey=Math.sin(p.a)*Rh*k*oy, ct=Math.cos(tl), sn=Math.sin(tl);
-   const px=X+ex*ct-ey*sn, py=Y+ex*sn+ey*ct, drift=dt*(20+heat*14); for(const h of p.h){ h[0]-=VX*drift; h[1]-=VY*drift; } p.h.push([px,py,p.g]); if(p.h.length>560) p.h.shift();
+   const px=X+ex*ct-ey*sn, py=Y+ex*sn+ey*ct, drift=dt*(5.5+heat*4); for(const h of p.h){ h[0]-=VX*drift; h[1]-=VY*drift; } p.h.push([px,py,p.g]); if(p.h.length>1500) p.h.shift();
    return {p, px, py, z:Math.sin(p.a), c:col(p.g)}; });
  /* the path each planet has travelled: the system moves forward, so orbits become spirals behind it */
  x.lineWidth=1.1; for(const q of pl){ const h=q.p.h; for(let i=1;i<h.length;i+=1){ x.globalAlpha=Math.pow(i/h.length,1.8)*(h[i][2]<.5?.3:.4)*q.p.al; x.strokeStyle=rgba(col(h[i][2]),1); x.beginPath(); x.moveTo(h[i-1][0],h[i-1][1]); x.lineTo(h[i][0],h[i][1]); x.stroke(); } } x.globalAlpha=1;
@@ -59,7 +59,7 @@ function f(now){const dt=Math.min(.05,(now-last)/1000); last=now; x.clearRect(0,
    x.restore(); }); };
  ring(false);
  /* the core reaches out to one service at a time */
- next-=dt; if(next<=0){ next=2.4; const q=pl[pick%pl.length]; if(q.p.cap<0) q.p.beam=1; pick+=4; }
+ next-=dt; if(next<=0){ next=3.6; const q=pl[pick%pl.length]; if(q.p.cap<0) q.p.beam=1; pick+=4; }
  let hov=null, hd=1e9; pl.forEach(q=>{ const d=Math.hypot(mx-q.px,my-q.py); if(d<28&&d<hd){hd=d;hov=q;} });
  const cw=narrow?6.1:6.7, boxes=[]; [...pl].sort((a,b)=>(b===hov)-(a===hov)||(b.p.cap>=0)-(a.p.cap>=0)||b.z-a.z).forEach(q=>{ const w=q.p.n.length*cw+6, bx=q.px-w/2, by=q.py+4; q.show=q===hov||q.p.cap>=0||!boxes.some(b=>bx<b[2]&&bx+w>b[0]&&by<b[3]&&by+(q.p.beam>.35?30:16)>b[1]); if(q.show) boxes.push([bx,by,bx+w,by+(q.p.beam>.35||q.p.cap>=0?30:16)]); });
  const drawPlanet=q=>{ const {p,px,py,z,c}=q, s=(narrow?4.2:5.4)*(1+.22*z)*(1+.1*p.g/2), lit=hov===q, A=p.al;
@@ -76,7 +76,7 @@ function f(now){const dt=Math.min(.05,(now-last)/1000); last=now; x.clearRect(0,
  const back=pl.filter(q=>q.z<0).sort((a,b)=>a.z-b.z), front=pl.filter(q=>q.z>=0).sort((a,b)=>a.z-b.z);
  back.forEach(drawPlanet);
  /* disk: far half first, then the bent light over the top, then the hole, then the near half */
- const pts=DISK.map(d=>{ const rr=rin+(rout-rin)*d.f; d.a+=dt*(1+heat*1.4)*1.15*Math.pow(rin/rr,1.5); const ca=Math.cos(d.a), sa=Math.sin(d.a);
+ const pts=DISK.map(d=>{ const rr=rin+(rout-rin)*d.f; d.a+=dt*(1+heat*1)*.26*Math.pow(rin/rr,1.5); const ca=Math.cos(d.a), sa=Math.sin(d.a);
    const ci=Math.min(HEATC.length-1,Math.floor(d.f*HEATC.length)), dop=1+.6*ca; return {px:X+ca*rr, py:Y+sa*rr*KY, sa, ca, ci, al:Math.min(1,(.35+.65*(1-d.f))*dop*(.75+.25*Math.sin(T*2+d.j*30))*(.85+heat*.3)), s:d.s*(narrow?.85:1)*(1+(1-d.f)*.5), f:d.f}; });
  x.save(); x.translate(X,Y); x.scale(1,KY); g=x.createRadialGradient(0,0,rin*.9,0,0,rout*1.15); g.addColorStop(0,`rgba(255,214,150,${.5+heat*.2})`); g.addColorStop(.45,'rgba(255,150,80,.22)'); g.addColorStop(1,'rgba(120,60,120,0)'); x.fillStyle=g; x.beginPath(); x.arc(0,0,rout*1.15,0,6.283); x.fill(); x.restore();
  x.save(); x.translate(X,Y); x.scale(1,.94); g=x.createRadialGradient(0,0,Rh*1.05,0,0,Rh*1.9); g.addColorStop(0,`rgba(255,220,170,${.38+heat*.15})`); g.addColorStop(1,'rgba(255,170,90,0)'); x.fillStyle=g; x.beginPath(); x.arc(0,0,Rh*1.9,Math.PI,0); x.fill(); x.restore();
