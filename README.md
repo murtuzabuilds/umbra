@@ -2,11 +2,11 @@
 
 <h1 align="center">Umbra</h1>
 <p align="center">Using AI to govern AI inside a company.</p>
-<p align="center"><a href="https://murtuzabuilds.github.io/umbra/"><b>Live console</b></a> · <a href="https://murtuzabuilds.github.io/umbra/case-study.html"><b>Case study</b></a></p>
+<p align="center"><a href="https://murtuzabuilds.github.io/umbra/"><b>Interactive demo · sample data</b></a> · <a href="https://murtuzabuilds.github.io/umbra/case-study.html"><b>Case study</b></a> · <a href="https://murtuzabuilds.github.io/outpost/"><b>Outpost</b></a> · <a href="https://murtuzabuilds.github.io/"><b>Portfolio</b></a></p>
 
 ![Umbra overview screen](docs/totality.webp)
 
-Umbra is a concept product I designed and built. It shows a company every AI tool and agent its people are using, catches sensitive data before it is sent to them, and turns the unapproved tools it finds into a ranked list of where to invest in approved AI next.
+Umbra is a concept product I designed and built. It shows a company every AI tool and agent its people use, stops sensitive data from reaching the risky ones, and lets a person give each agent an owner and limits. AI drafts rules; fixed rules and people decide. It also turns the unapproved tools it finds into a ranked list of where to invest in approved AI next.
 
 ## Why I built it
 
@@ -17,39 +17,55 @@ The early AI security startups were bought by large security vendors in 2024 and
 ## Three ideas behind it
 
 1. **Unapproved AI use shows what people need.** If a team keeps using an unapproved tool for a task, that is a sign they need an approved one. The Demand Map groups this by team and task and ranks where a tool would help most.
-2. **AI can help write the rules, but not enforce them.** Umbra's AI layer, Corona, drafts rules from plain English, spots unregistered AI services and summarises incidents. The actual block or allow decision comes from fixed rules that give the same answer every time, and a person approves any new rule.
+2. **AI can help write the rules, but not enforce them.** Umbra's AI layer, Corona (AI assistant), drafts rules from plain English, spots AI services that are not in the catalog and summarises incidents. The actual block or allow decision comes from fixed rules that give the same answer every time, and a person approves any new rule.
 3. **Agents need owners and limits.** Each agent gets a named owner and a list of what it may do. Every call is checked against that list, and Umbra estimates how much data could be reached through an agent if it were compromised.
 
 ## What's in the console
 
 | | |
 |---|---|
-| **Totality**: how much AI use is visible, the share on approved tools, how much sensitive data was stopped, and open cases | **Constellation**: every AI service on one map, placed by risk and usage |
+| **Overview**: how much AI use is visible, the share on approved tools, how much sensitive data was contained, open cases, and Umbra at the centre | **AI map**: every AI service on one map, placed by risk and usage |
 | ![](docs/totality.webp) | ![](docs/constellation.webp) |
 | **Inspect**: check any text, see what gets masked and which rules applied | **Agents**: who calls what, calls outside the limits, owners and exposure |
 | ![](docs/inspect.webp) | ![](docs/agents.webp) |
-| **Policies**: write a rule in a sentence and replay the last 30 days before turning it on | **Incidents**: 888 raw alerts grouped into 62 cases, each with a short summary |
+| **Policies**: write a rule in a sentence and "Test on last month" before turning it on | **Incidents**: 888 raw alerts grouped into 62 cases, each with a short summary |
 | ![](docs/time-machine.webp) | ![](docs/incidents.webp) |
 | **Demand Map**: where approved AI would help most, as a now, next and later list | **Assurance**: controls mapped to the EU AI Act, ISO/IEC 42001, NIST AI RMF and SOC 2, with exports |
 | ![](docs/demand.webp) | ![](docs/assurance.webp) |
 
 ![What an employee sees](docs/coach.webp)
 
-### The central intelligence
+### Umbra at the centre
 
-The Totality card shows Umbra as a black hole with every AI service found at Kestrel Mutual on orbit: approved services on the inner rings, unapproved and high-risk ones further out, size by how much each was used. Three things live on it, all driven by the same sample data and rules as the rest of the console:
+The Overview card "Umbra at the centre" shows every AI tool at Kestrel Mutual on orbit around Umbra: all 15 services seen in the sample month, plus Agent 7f3 while it has no owner. Each ring around a tool is a control that applies to it. Inner to outer the rings are approvals, tool calling, API limits, rules, data boundaries and audit trail, so placement is honest:
 
-- **Time machine.** A scrubber replays the 30 days of sample events. A service appears on the day it was first seen, grows with its interactions, and a pulse from the core marks each sensitive interaction a rule blocked, masked or held that day. The counters are computed for that day and the replay ends on today.
-- **Red-team drill.** Three hostile sample interactions (an unregistered agent posting customer records to an outside host, a hidden instruction inside a customer email, a confidential file pasted into an unapproved tool) go through the real rule engine. A beam pulls a planet back only when a rule actually stopped it. With the default rules, one of three is stopped, and the other two are shown as gaps with the switched-off rule that would catch each (P-08 and the new P-09).
-- **How this view works.** A "?" overlay explains the rings, colours, scrubber and drill in plain words. Stars bend slightly around the core and the cursor, and an optional synthesised sound (off by default) hums near the core and chimes when something is contained or approved.
+| Status | Colour | Where it orbits |
+|---|---|---|
+| approved | aurora `#3BE8B0` (green) | inside all six rings: every control applies |
+| unapproved | flare `#FFB347` (amber) | between API limits and rules: rules, data boundaries and the audit trail still apply, which is how Umbra masks and blocks data sent to them |
+| high risk | ember `#FF5470` (red) | between rules and data boundaries: only data boundaries and the audit trail reach them, so Umbra blocks or masks what is sent to them |
+| unowned agent | ember with a dashed ring | the same band as high risk: nobody has set its limits yet |
 
-### Approve an agent and send it to Outpost
+The same four words and colours are used on the canvas, the AI map, the 30-day trend chart, the drill and every legend (`src/status.js`, checked against `brand/umbra-system.js` by a test). Nothing turns approved by itself: a tool or agent moves inward only when a person approves it.
 
-From the Agents view (or the weekly brief), the unowned agent can be approved: pick an owner from Kestrel's people, tick the permissions it may use (defaults come from what it was seen doing; risky ones such as sending data outside the company stay unticked and say why), and set how much money it may move alone. On confirm, Umbra registers it with that owner and mandate, the maturity level updates, its planet turns green, and Umbra hands it to Outpost: it writes `umbra.outpost.handoff` to local storage and opens Outpost with the same record in a `#dock=` link. The shape is fixed and tested in `src/handoff.js`.
+- **Play the month.** A scrubber replays the 30 days of sample events. A service appears on the day it was first seen, grows with its interactions, and a pulse from the core marks each sensitive interaction a rule blocked or masked that day. The counters use one definition of contained, shared with the KPI tile: a sensitive interaction a rule blocked, masked or held, or one that only went to an approved tool. With the default rules that is 209 of 231 (158 blocked or masked, 51 on approved tools); 22 reached an unapproved vendor.
+- **Red-team drill.** Three hostile sample cases (Agent 7f3 posting customer records to an outside host, a hidden instruction inside a customer email, a confidential file pasted into an unapproved tool) run through the same rules as real traffic. A tether pulls a dot back only when a rule actually stopped it; a case that got through shows in red. With the default rules, one of three is stopped (blocked by rule P-07), and the other two are shown as gaps with the switched-off rule that would catch each (P-08 and P-09).
+- **How this view works.** A "?" overlay explains the rings, colours, scrubber and drill in plain words. An optional synthesised sound (off by default) hums near the core.
+
+`brand/umbra-system.js` is shared with my portfolio site. There it runs a scripted loop of real event kinds only (a pulse "sensitive data masked", a beam "blocked by rule P-07", and every 27 seconds or so "a person approves Agent 7f3", which then resets). In the console the loop is off and every event comes from the sample data, the drill or a real approval.
+
+### Review Agent 7f3 and send it to Outpost
+
+Agent 7f3 is a Marketing agent with no owner that drafts emails to customers. Umbra saw it call `mail.draft`, `crm.read` and `web.post`, and the posts to the web carried confidential data. "Review Agent 7f3" (in Agents or the weekly brief) offers two equal choices:
+
+- **Pause it.** Its calls are refused at the gateway, it shows as paused in the list and on the map, and the drill reports its call as refused. It still has no owner.
+- **Approve with limits.** Pick an owner from Kestrel's people and tick its permissions, which become its badge in Outpost. Defaults come from what it was seen doing: send customer emails and read contact details are ticked; `web.post` maps to send data outside the company, which starts unticked with the reason shown. Any permission seen with confidential data starts unticked. Set how much money it may move alone, then "Approve and send to Outpost". Umbra records the owner and limits, the maturity level moves to Agents owned, its dot moves inside the rings and turns green, and it is handed to Outpost as Fern (a name no other bot uses): Umbra writes `umbra.outpost.handoff` to local storage and opens Outpost with the same record in a `#dock=` link. The shape is fixed and tested in `src/handoff.js`.
+
+The eight agents Umbra already approved are the Outpost crew, with the same names, jobs, owners and teams in both products: Pip (Claims intake, Rosa Chen), Sable (Fraud screening, Dev Okoye), Juno (Refunds and billing, Priya Patel), Kite (Customer replies, Hana Lopez), Bolt (Broker assist, Wren Hayes), Moss (Month-end close, Omar Ito), Dot (Scheduling, Mateo Diaz) and Rook (Records and reports, Lena Fischer).
 
 ## Where Umbra stops
 
-Umbra is a governance product. It decides which AI gets into the company and what data may reach it. It does not run the work. Once an agent is approved, with a named owner and a list of what it may touch, someone still has to run it day to day, sign off its risky calls and answer for its output. That is a different job for a different person, and I built it as a separate product, [Outpost](https://github.com/murtuzabuilds/outpost).
+Umbra is a governance product. It decides which AI gets into the company and what data may reach it. It does not run the work. Once an agent is approved, with a named owner and a list of what it may touch, someone still has to run it day to day, give a yes or no on its risky actions and answer for its output. That is a different job for a different person, and I built it as a separate product, [Outpost](https://github.com/murtuzabuilds/outpost).
 
 | | Umbra | Outpost |
 |---|---|---|
@@ -69,20 +85,21 @@ Plain JavaScript with no dependencies. The engine lives in `src/` and everything
 | `catalog.js` | The list of AI services, and a risk score based only on facts you can check about each vendor |
 | `detect.js` | Finds sensitive data and confirms matches (Luhn for cards, IBAN checksums, SSN rules), then masks it |
 | `policy.js` | Rules as data. The strictest matching rule wins, and every decision records which rules applied |
-| `agents.js` | Agent owners and limits, call checks, chain depth, and exposure through other agents |
-| `corona.js` | The AI layer: rule drafting, unregistered AI detection, checks for hidden instructions in agent messages, incident summaries |
-| `timeline.js` | The month replayed day by day for the time machine |
+| `agents.js` | The crew and Agent 7f3, owners and limits, call checks, chain depth, and exposure through other agents |
+| `corona.js` | The AI layer: rule drafting, spotting AI services that are not in the catalog, checks for hidden instructions in agent messages, incident summaries |
+| `timeline.js` | The month replayed day by day for "Play the month", and the one definition of contained |
+| `status.js` | The status words and colours used on every surface |
 | `drill.js` | Red-team drill cases, run through the real engine, and the switched-off rule that would catch a gap |
-| `handoff.js` | The Umbra to Outpost handoff: tool whitelist, size caps, base64url link |
+| `handoff.js` | The Umbra to Outpost handoff: default permissions, tool whitelist, size caps, base64url link |
 | `triage.js` | Groups alerts into cases and closes the ones rules already handled |
-| `simulate.js` | Replays past activity against a draft set of rules |
+| `simulate.js` | "Test on last month": re-runs past activity against a draft set of rules |
 | `demand.js` | The Demand Map |
-| `compliance.js` | Eight controls measured from live data, framework mappings and the evidence pack |
+| `compliance.js` | Eight controls measured from current product state, framework mappings and the evidence pack |
 | `index.js` | Runs everything, plus the maturity scale and the AI inventory export |
 
 ```bash
-npm test      # 31 tests
-npx serve .   # open the console
+npm test      # 42 tests
+npx serve .   # open the demo
 ```
 
 In this prototype, Corona's skills are simple local stand-ins so the demo runs offline and costs nothing. In a real product each one would call an AI model, limited to producing output in the same format, and it would still never make the final decision.

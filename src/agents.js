@@ -2,16 +2,26 @@
 // touch), and a place in the interaction graph. Umbra reads MCP gateway logs to see
 // human-to-agent and agent-to-agent calls, and checks each one against its mandate.
 
+// The eight approved agents are the Outpost crew: same name, job, owner and team in both products.
+// Agent 7f3 is the one Umbra found with no owner: a Marketing agent that drafts emails to customers.
 export const AGENTS = [
-  { id: 'ag-claims-intake', name: 'Claims Intake Agent', owner: 'Rosa Chen', platform: 'relay', registered: true,
+  { id: 'ag-claims-intake', name: 'Pip', job: 'Claims intake', owner: 'Rosa Chen', team: 'Claims', platform: 'relay', registered: true,
     mandate: { tools: ['crm.read', 'claims.create', 'docs.parse'], data: ['PII'], callsAgents: ['ag-fraud-screen'], maxCallsPerHour: 400 } },
-  { id: 'ag-fraud-screen', name: 'Fraud Screening Agent', owner: 'Dev Okoye', platform: 'relay', registered: true,
+  { id: 'ag-fraud-screen', name: 'Sable', job: 'Fraud screening', owner: 'Dev Okoye', team: 'Claims', platform: 'relay', registered: true,
     mandate: { tools: ['claims.read', 'score.fraud'], data: ['PII', 'FIN'], callsAgents: [], maxCallsPerHour: 600 } },
-  { id: 'ag-sales-assist', name: 'Broker Assist Agent', owner: 'Wren Hayes', platform: 'relay', registered: true,
+  { id: 'ag-refunds', name: 'Juno', job: 'Refunds and billing', owner: 'Priya Patel', team: 'Finance', platform: 'relay', registered: true,
+    mandate: { tools: ['billing.read', 'refunds.issue'], data: ['PII', 'FIN'], callsAgents: [], maxCallsPerHour: 150 } },
+  { id: 'ag-care-replies', name: 'Kite', job: 'Customer replies', owner: 'Hana Lopez', team: 'Customer Care', platform: 'relay', registered: true,
+    mandate: { tools: ['crm.read', 'mail.send'], data: ['PII'], callsAgents: [], maxCallsPerHour: 300 } },
+  { id: 'ag-sales-assist', name: 'Bolt', job: 'Broker assist', owner: 'Wren Hayes', team: 'Underwriting', platform: 'relay', registered: true,
     mandate: { tools: ['crm.read', 'quotes.draft', 'mail.draft'], data: ['PII'], callsAgents: ['ag-claims-intake'], maxCallsPerHour: 200 } },
-  { id: 'ag-finance-close', name: 'Month-End Close Agent', owner: 'Omar Ito', platform: 'nova-api', registered: true,
+  { id: 'ag-finance-close', name: 'Moss', job: 'Month-end close', owner: 'Omar Ito', team: 'Finance', platform: 'nova-api', registered: true,
     mandate: { tools: ['ledger.read', 'recon.run'], data: ['FIN'], callsAgents: [], maxCallsPerHour: 120 } },
-  { id: 'ag-unknown-7f3', name: 'Unregistered agent 7f3', owner: null, platform: 'loopwork', registered: false,
+  { id: 'ag-scheduling', name: 'Dot', job: 'Scheduling', owner: 'Mateo Diaz', team: 'Claims', platform: 'relay', registered: true,
+    mandate: { tools: ['calendar.write'], data: [], callsAgents: [], maxCallsPerHour: 120 } },
+  { id: 'ag-records', name: 'Rook', job: 'Records and reports', owner: 'Lena Fischer', team: 'Data Science', platform: 'nova-api', registered: true,
+    mandate: { tools: ['records.read', 'reports.build'], data: ['PII', 'FIN'], callsAgents: [], maxCallsPerHour: 100 } },
+  { id: 'ag-unknown-7f3', name: 'Agent 7f3', job: 'Drafts emails to customers', owner: null, team: 'Marketing', platform: 'loopwork', registered: false,
     mandate: { tools: [], data: [], callsAgents: [], maxCallsPerHour: 0 } },
 ];
 
@@ -25,9 +35,15 @@ export const CALLS = [
   { id: 'c6', from: 'ag-sales-assist', to: 'tool', tool: 'mail.send', data: ['PII'], count: 9 },
   { id: 'c7', from: 'ag-sales-assist', to: 'ag-finance-close', tool: 'ledger.read', data: ['FIN'], count: 3 },
   { id: 'c8', from: 'human:Omar Ito', to: 'ag-finance-close', tool: 'recon.run', data: ['FIN'], count: 22 },
-  { id: 'c9', from: 'human:Gabe Lopez', to: 'ag-unknown-7f3', tool: 'files.read.all', data: ['CONF', 'PII'], count: 41 },
-  { id: 'c10', from: 'ag-unknown-7f3', to: 'tool', tool: 'web.post', data: ['CONF'], count: 41 },
+  // Agent 7f3: drafts customer emails, reads contacts, and posts files to the web with confidential data in them
+  { id: 'c9', from: 'human:Gabe Lopez', to: 'ag-unknown-7f3', tool: 'mail.draft', data: ['PII'], count: 41 },
+  { id: 'c10', from: 'ag-unknown-7f3', to: 'tool', tool: 'crm.read', data: ['PII'], count: 38 },
+  { id: 'c12', from: 'ag-unknown-7f3', to: 'tool', tool: 'web.post', data: ['CONF', 'PII'], count: 12 },
   { id: 'c11', from: 'ag-claims-intake', to: 'tool', tool: 'docs.parse', data: ['PII', 'PHI'], count: 37 },
+  { id: 'c13', from: 'human:Priya Patel', to: 'ag-refunds', tool: 'refunds.issue', data: ['FIN'], count: 31 },
+  { id: 'c14', from: 'human:Hana Lopez', to: 'ag-care-replies', tool: 'mail.send', data: ['PII'], count: 57 },
+  { id: 'c15', from: 'human:Mateo Diaz', to: 'ag-scheduling', tool: 'calendar.write', data: [], count: 26 },
+  { id: 'c16', from: 'human:Lena Fischer', to: 'ag-records', tool: 'reports.build', data: ['FIN'], count: 14 },
 ];
 
 const byId = id => AGENTS.find(a => a.id === id);
@@ -38,18 +54,18 @@ export function checkCall(call) {
   const caller = call.from.startsWith('human:') ? null : byId(call.from);
   const target = call.to === 'tool' ? null : byId(call.to);
   const actor = caller || target; // whose mandate governs this hop
-  if (target && !target.registered) v.push({ code: 'shadow_agent', severity: 'critical', text: `${target.name} has no owner and no mandate, yet it received ${call.count} requests.` });
-  if (caller && !caller.registered) v.push({ code: 'shadow_agent', severity: 'critical', text: `${caller.name} is acting with no owner and no mandate.` });
+  if (target && !target.registered) v.push({ code: 'shadow_agent', severity: 'critical', text: `${target.name} has no owner and no limits, yet it received ${call.count} requests.` });
+  if (caller && !caller.registered) v.push({ code: 'shadow_agent', severity: 'critical', text: `${caller.name} is acting with no owner and no limits.` });
   if (caller && target && !caller.mandate.callsAgents.includes(target.id)) {
-    v.push({ code: 'unapproved_delegation', severity: 'high', text: `${caller.name} called ${target.name}, which its mandate does not allow.` });
+    v.push({ code: 'unapproved_delegation', severity: 'high', text: `${caller.name} called ${target.name}, which its limits do not allow.` });
   }
   const scopeOwner = call.to === 'tool' ? caller : target;
   if (scopeOwner && scopeOwner.registered && !scopeOwner.mandate.tools.includes(call.tool)) {
-    v.push({ code: 'out_of_scope_tool', severity: 'high', text: `${scopeOwner.name} used ${call.tool}, which is outside its mandate.` });
+    v.push({ code: 'out_of_scope_tool', severity: 'high', text: `${scopeOwner.name} used ${call.tool}, which is outside its limits.` });
   }
   if (actor && actor.registered) {
     const extra = call.data.filter(d => !actor.mandate.data.includes(d));
-    if (extra.length) v.push({ code: 'data_class_exceeded', severity: extra.includes('PHI') ? 'critical' : 'high', text: `${actor.name} handled ${extra.join(', ')} data, which its mandate does not cover.` });
+    if (extra.length) v.push({ code: 'data_class_exceeded', severity: extra.includes('PHI') ? 'critical' : 'high', text: `${actor.name} handled ${extra.join(', ')} data, which its limits do not cover.` });
   }
   return v;
 }
@@ -78,6 +94,14 @@ export function graph(calls = CALLS) {
   for (const n of nodes.values()) if (n.kind === 'agent') { const a = byId(n.id); n.label = a?.name || n.id; n.registered = !!a?.registered; n.owner = a?.owner; }
   return { nodes: [...nodes.values()], edges };
 }
+
+/** Plain words for each finding code, for the screen. */
+export const FINDING_WORDS = {
+  shadow_agent: 'no owner',
+  unapproved_delegation: 'calls an agent it may not',
+  out_of_scope_tool: 'tool outside its limits',
+  data_class_exceeded: 'data outside its limits',
+};
 
 export function agentFindings(calls = CALLS) {
   return calls.flatMap(c => checkCall(c).map(v => ({ ...v, call: c.id, from: c.from, to: c.to, tool: c.tool, count: c.count })));

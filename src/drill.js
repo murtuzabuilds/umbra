@@ -1,7 +1,7 @@
 // Red-team drill: hostile sample interactions sent through the real engine.
 //
 // The drill does not decide anything itself. It builds the events, hands them to evaluate()
-// and checkCall() exactly as live traffic would be, and reports what came back. When a case
+// and checkCall() exactly as real traffic would be, and reports what came back. When a case
 // gets through, it says so, and finds the switched-off rule (if any) that would have caught it
 // by re-running the same event with that one rule turned on.
 
@@ -15,8 +15,9 @@ const RED = { id: 'redteam', name: 'Red-team drill', team: 'Security' };
 export const DRILL_CASES = [
   {
     id: 'agent-exfil',
-    title: 'Unregistered agent posts customer records to an outside host',
-    titleOwned: 'Approved agent posts customer records to an outside host, beyond its limits',
+    title: 'Agent 7f3 posts customer records to an outside host',
+    titleOwned: 'Agent 7f3, now approved, posts customer records to an outside host, beyond its limits',
+    titlePaused: 'Agent 7f3, paused, tries to post customer records to an outside host',
     agent: 'ag-unknown-7f3',
     event: {
       id: 'drill-1', source: 'mcp', channel: 'api', host: 'drop.outside-host.example',
@@ -56,7 +57,7 @@ export function wouldCatch(event, policies, org) {
   return null;
 }
 
-/** Run every drill case through the live policy set and agent registry. */
+/** Run every drill case through the current policy set and agent registry. A paused agent's calls are refused at the gateway. */
 export function runDrill(policies, org, agents) {
   return DRILL_CASES.map(c => {
     const agent = c.agent ? agents.find(a => a.id === c.agent) : null;
@@ -65,13 +66,14 @@ export function runDrill(policies, org, agents) {
     const d = evaluate(event, policies, org);
     const agentIssues = c.call && agent ? checkCall(c.call).map(v => v.code) : [];
     const signals = injectionSignals(event.text);
-    const held = contained(d.action);
+    const paused = !!agent?.paused;
+    const held = paused || contained(d.action);
     const rule = policies.find(p => p.id === d.rule);
     return {
-      id: c.id, title: agent?.registered && c.titleOwned ? c.titleOwned : c.title, event, agent: c.agent || null, service: c.service || null,
-      action: d.action, rule: d.rule, ruleName: rule?.name || 'No rule matched',
+      id: c.id, title: paused && c.titlePaused ? c.titlePaused : agent?.registered && c.titleOwned ? c.titleOwned : c.title, event, agent: c.agent || null, service: c.service || null,
+      action: paused ? 'block' : d.action, rule: paused ? 'paused' : d.rule, ruleName: paused ? 'Paused by a person, so the gateway refuses its calls' : rule?.name || 'No rule matched',
       message: d.message, findings: d.findings.map(f => f.label), signals, agentIssues,
-      held, gap: held ? null : wouldCatch(event, policies, org),
+      held, paused, gap: held ? null : wouldCatch(event, policies, org),
     };
   });
 }

@@ -182,3 +182,23 @@ input[type=number]:focus,.ap-fields select:focus{border-color:var(--plasma)}
 .ap-more{margin-top:10px;font-size:13px;color:var(--ink2)}
 .ap-more summary{cursor:pointer;color:var(--ink2);padding:4px 0}
 @media(max-width:760px){.core-card h3{padding-right:0;padding-top:34px}.core-card h3 small{display:block;margin:2px 0 0}.core-tools{top:12px;right:12px}.tm{flex-wrap:wrap}.tm input[type=range]{flex-basis:100%;order:3}.tm-date{margin-left:auto}.legend-go{margin-left:0}}
+/* sync: one palette, review choices, map caption */
+.core-card .core-sub{margin:-4px 0 10px;font-size:12.5px;color:var(--ink3);padding-right:150px}
+.core-cap{margin:8px 0 4px;font-size:11.5px;color:var(--ink3)}
+.core-legend{margin:2px 0 8px;color:var(--ink2)}
+.drill-it.held{border-left-color:var(--corona)}
+.act.gotthrough{background:rgba(255,84,112,.14);color:var(--ember)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:1px}
+.tag.st-approved{color:var(--aurora);border-color:rgba(59,232,176,.4)}
+.tag.st-unapproved{color:var(--flare);border-color:rgba(255,179,71,.4)}
+.tag.st-high{color:var(--ember);border-color:rgba(255,84,112,.45)}
+.choice2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.btn.choice{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:14px;border:1px solid var(--line2);border-radius:12px;white-space:normal;height:auto}
+.btn.choice b{font-weight:500;font-size:14px;color:var(--ink)}
+.btn.choice small{font-size:12px;color:var(--ink3);line-height:1.4}
+.btn.choice:hover{border-color:var(--corona)}
+.pill-demo i{background:var(--flare);box-shadow:0 0 10px var(--flare)}
+@media(max-width:760px){.core-card .core-sub{padding-right:0}.choice2{grid-template-columns:1fr}}
+@media(max-width:520px){.pill-demo{font-size:10.5px;padding:5px 9px}}
+@media(max-width:760px){.app{grid-template-columns:minmax(0,1fr)}.main{min-width:0}.top{flex-wrap:wrap;row-gap:8px}.top h1{min-width:0}.pill-demo{white-space:normal;text-align:left}}
+.grid>*{min-width:0}

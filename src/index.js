@@ -8,6 +8,7 @@ import { readiness, evidencePack } from './compliance.js';
 import { AGENTS, CALLS, agentFindings, graph, chainDepth, blastRadius } from './agents.js';
 import { demandMap } from './demand.js';
 import { generate } from './telemetry.js';
+import { isContained, containment } from './timeline.js';
 
 export * from './catalog.js';
 export * from './detect.js';
@@ -22,7 +23,8 @@ export * from './telemetry.js';
 export * from './timeline.js';
 export * from './drill.js';
 export * as handoff from './handoff.js';
-export { ORG } from './org.js';
+export { ORG, AGENT_OWNERS } from './org.js';
+export * from './status.js';
 
 /** Inventory: every AI destination seen, with who uses it and how risky it is. */
 export function inventory(events, decisions, org = ORG) {
@@ -48,7 +50,7 @@ export const MATURITY = [
   { level: 1, name: 'Aware', means: 'AI use is discovered and inventoried, but not governed.' },
   { level: 2, name: 'Guided', means: 'Sensitive data is protected and people are coached toward approved tools.' },
   { level: 3, name: 'Governed', means: 'Policies are enforced, simulated before change, and evidenced for audit.' },
-  { level: 4, name: 'Autonomous-ready', means: 'Every agent has an owner and a mandate. The company can safely let AI act.' },
+  { level: 4, name: 'Agents owned', means: 'Every agent has a named owner and set limits, so the company can let agents do real work.' },
 ];
 
 export function maturityOf(m) {
@@ -63,13 +65,17 @@ export function run({ events = generate(), policies = DEFAULT_POLICIES, org = OR
   const decisions = events.map(e => evaluate(e, policies, org));
   const inv = inventory(events, decisions, org);
   const tri = triage(decisions, events);
+  // a paused agent's calls are refused at the gateway, so they no longer count as live traffic
+  const pausedIds = new Set(agents.filter(a => a.paused).map(a => a.id));
+  calls = calls.filter(c => !pausedIds.has(c.from) && !pausedIds.has(c.to));
   const agentIssues = agentFindings(calls);
   const g = graph(calls);
 
   const aiEvents = events.length;
   const recognised = decisions.filter(d => d.service).length;
   const sensitive = decisions.filter(d => d.findings.length);
-  const prevented = sensitive.filter(d => ['block', 'redact', 'require_approval'].includes(d.action) || d.sanctioned);
+  const prevented = sensitive.filter(isContained);
+  const contain = containment(decisions);
   const onPaved = decisions.filter(d => d.sanctioned).length;
   const coached = new Set(decisions.filter(d => d.action === 'coach').map((d, i) => d.eventId));
   const coachedUsers = new Set(events.filter(e => coached.has(e.id)).map(e => e.user.id));
@@ -89,6 +95,8 @@ export function run({ events = generate(), policies = DEFAULT_POLICIES, org = OR
     coached: coached.size,
     agents: agents.length,
     shadowAgents: agents.filter(a => !a.registered).length,
+    pausedAgents: agents.filter(a => !a.registered && a.paused).length,
+    contained: contain,
     agentCoverage: agents.filter(a => a.registered).length / agents.length,
     agentViolations: agentIssues.length,
     chainDepth: chainDepth(calls),

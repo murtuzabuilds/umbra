@@ -136,7 +136,7 @@ export function narrate(incident) {
 
 export const CORONA_SKILLS = [
   { id: 'author', name: 'Policy author', does: 'Turns a sentence into policy code, flags what it is unsure of, and round-trips it back to English for review.' },
-  { id: 'discover', name: 'Shadow discovery', does: 'Recognises AI endpoints nobody registered, from traffic shape alone.' },
+  { id: 'discover', name: 'AI discovery', does: 'Recognises AI endpoints that are not in the catalog, from traffic shape alone.' },
   { id: 'defend', name: 'Agent defence', does: 'Spots prompt injection and exfiltration attempts in agent-to-agent payloads.' },
   { id: 'narrate', name: 'Narrator', does: 'Explains every incident twice: precisely for the analyst, kindly for the employee.' },
 ];

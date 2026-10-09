@@ -10,7 +10,7 @@ import { AGENTS, CALLS } from '../src/agents.js';
 const FIXED = ['claims.write', 'fraud.flag', 'payments.refund', 'payments.pay', 'email.send', 'crm.read', 'crm.write', 'crm.records', 'docs.write', 'calendar.write', 'ledger.write', 'data.export', 'accounts.close', 'underwriting.models'];
 const shadow = AGENTS.find(a => !a.registered);
 const observed = CALLS.filter(c => c.to === shadow.id || c.from === shadow.id).map(c => c.tool);
-const make = (over = {}) => buildAgent({ agent: shadow, name: 'Wick', job: 'Read shared files', owner: 'Gabe Lopez', team: 'Marketing', tools: ['crm.records'], limit: 0, approvedAt: new Date('2026-09-28T12:00:00Z'), ...over });
+const make = (over = {}) => buildAgent({ agent: shadow, name: 'Fern', job: 'Drafts emails to customers', owner: 'Gabe Lopez', team: 'Marketing', tools: ['crm.records'], limit: 0, approvedAt: new Date('2026-09-28T12:00:00Z'), ...over });
 
 test('the Outpost tool list is exactly the fixed contract list', () => {
   assert.deepEqual(Object.keys(OUTPOST_TOOLS), FIXED);
@@ -27,8 +27,8 @@ test('tools are whitelisted, deduplicated and kept in contract order', () => {
 
 test('defaults come from what the agent was seen doing, risky ones unticked', () => {
   const s = suggestTools(observed);
-  assert.deepEqual(observed.sort(), ['files.read.all', 'web.post']);
-  assert.deepEqual(s.defaults, ['crm.records']);
+  assert.deepEqual([...observed].sort(), ['crm.read', 'mail.draft', 'web.post']);
+  assert.deepEqual(s.defaults, ['email.send', 'crm.read']);
   const exp = s.suggested.find(x => x.tool === 'data.export');
   assert.equal(exp.ticked, false);
   assert.equal(exp.risky, true);

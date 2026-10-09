@@ -31,7 +31,7 @@ function titleFor(kind, ds, leaked) {
   if (kind === 'secret') return `Credential sent toward ${where}`;
   if (kind === 'exposure') return `${top ? top.label : 'Sensitive data'} reached ${where}`;
   if (kind === 'oauth') return `${where} requests access to company data`;
-  if (kind === 'api') return `Service calling ${d.service ? where : 'unregistered model endpoint ' + where}`;
+  if (kind === 'api') return `Service calling ${d.service ? where : 'unknown model endpoint ' + where}`;
   if (d.action === 'coach') return `Growing use of unapproved ${where}`;
   return `${top ? top.label : 'AI use'} ${d.action === 'block' ? 'blocked at' : d.action === 'redact' ? 'redacted for' : 'contained at'} ${where}`;
 }

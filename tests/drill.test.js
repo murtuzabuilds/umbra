@@ -47,12 +47,16 @@ test('timeline: the replay ends exactly on today, and only uses real days', () =
   const last = tl.totals.at(-1);
   assert.equal(last.interactions, R.events.length);
   assert.equal(last.seen, R.inventory.length);
-  assert.equal(last.contained, R.decisions.filter(d => d.findings.length && ['block', 'redact', 'require_approval'].includes(d.action)).length);
+  assert.equal(last.stopped, R.decisions.filter(d => d.findings.length && ['block', 'redact', 'require_approval'].includes(d.action)).length);
+  // one definition of contained: the time machine on its last day equals the KPI tile
+  assert.equal(last.contained, R.metrics.sensitive - R.metrics.exposures);
+  assert.equal(last.contained, last.stopped + last.onApproved);
+  assert.deepEqual([last.contained, last.stopped, last.onApproved], [R.metrics.contained.contained, R.metrics.contained.stopped, R.metrics.contained.onApproved]);
   for (const r of R.inventory) assert.equal(tl.services[r.key].cum.at(-1), r.events);
   // cumulative numbers never go down, and nothing is seen before its first event
   for (let i = 1; i < 30; i++) { assert.ok(tl.totals[i].interactions >= tl.totals[i - 1].interactions); assert.ok(tl.totals[i].seen >= tl.totals[i - 1].seen); }
   const d0 = dayState(tl, 0);
   assert.ok(d0.rows.every(row => tl.services[row.key].first === 0));
   assert.equal(dayState(tl, 99).day, 29);
-  assert.equal(d0.rows.reduce((a, r) => a + r.contained, 0), tl.totals[0].containedToday);
+  assert.equal(d0.rows.reduce((a, r) => a + r.stopped, 0), tl.totals[0].stoppedToday);
 });

@@ -39,6 +39,14 @@ export const RISKY = {
   'accounts.close': 'Cannot be undone. Off by default.',
   'ledger.write': 'Changes the books. Off by default.',
 };
+/** Default Outpost bot name for Agent 7f3. Never one of the crew names Outpost already uses. */
+export const DEFAULT_BOT_NAME = 'Fern';
+export const OUTPOST_CREW = ['Pip', 'Sable', 'Juno', 'Kite', 'Bolt', 'Moss', 'Dot', 'Rook'];
+
+/** Data classes that keep a permission unticked when the agent was seen using it with them. */
+export const SENSITIVE_SEEN = ['CONF'];
+export const SEEN_WITH_CONF = 'It was seen with confidential data. Off unless you are sure.';
+
 export const MONEY_TOOLS = ['payments.pay', 'payments.refund', 'ledger.write'];
 
 /**
@@ -77,21 +85,27 @@ export function cleanTools(list) {
 
 /**
  * Default permissions from what the agent was observed doing.
- * Safe mapped tools are ticked; risky ones are offered but left unticked, with the reason.
+ * `observed` is a list of gateway tool names, or of calls ({tool, data}) so the data seen can count.
+ * Safe mapped tools are ticked. Risky ones, and any seen with confidential data, are offered but
+ * left unticked, with the reason.
  */
 export function suggestTools(observed = []) {
-  const seen = [...new Set(observed.map(String))];
+  const items = (Array.isArray(observed) ? observed : []).map(o => (o && typeof o === 'object') ? { tool: String(o.tool), data: Array.isArray(o.data) ? o.data.map(String) : [] } : { tool: String(o), data: [] });
   const mapped = [], unmapped = [];
-  for (const t of seen) {
+  for (const { tool: t, data } of items) {
     const o = OBSERVED_TO_OUTPOST[t];
-    if (o) { if (!mapped.some(m => m.tool === o)) mapped.push({ tool: o, from: [t] }); else mapped.find(m => m.tool === o).from.push(t); }
-    else unmapped.push(t);
+    if (!o) { if (!unmapped.includes(t)) unmapped.push(t); continue; }
+    let m = mapped.find(x => x.tool === o);
+    if (!m) mapped.push(m = { tool: o, from: [], data: [] });
+    if (!m.from.includes(t)) m.from.push(t);
+    for (const d of data) if (!m.data.includes(d)) m.data.push(d);
   }
-  return {
-    suggested: mapped.map(m => ({ ...m, label: OUTPOST_TOOLS[m.tool], risky: !!RISKY[m.tool], reason: RISKY[m.tool] || null, ticked: !RISKY[m.tool] })),
-    defaults: cleanTools(mapped.filter(m => !RISKY[m.tool]).map(m => m.tool)),
-    unmapped,
-  };
+  const suggested = mapped.map(m => {
+    const conf = m.data.some(d => SENSITIVE_SEEN.includes(d));
+    const reason = RISKY[m.tool] ? (conf ? `${RISKY[m.tool]} ${SEEN_WITH_CONF.split('.')[0]}.` : RISKY[m.tool]) : conf ? SEEN_WITH_CONF : null;
+    return { tool: m.tool, from: m.from, label: OUTPOST_TOOLS[m.tool], risky: !!RISKY[m.tool] || conf, conf, reason, ticked: !RISKY[m.tool] && !conf };
+  });
+  return { suggested, defaults: cleanTools(suggested.filter(x => x.ticked).map(x => x.tool)), unmapped };
 }
 
 /** The short rules Outpost shows on the bot's badge, written from what the person set. */
