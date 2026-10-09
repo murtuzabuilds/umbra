@@ -35,6 +35,18 @@ The early AI security startups were bought by large security vendors in 2024 and
 
 ![What an employee sees](docs/coach.webp)
 
+### The central intelligence
+
+The Totality card shows Umbra as a black hole with every AI service found at Kestrel Mutual on orbit: approved services on the inner rings, unapproved and high-risk ones further out, size by how much each was used. Three things live on it, all driven by the same sample data and rules as the rest of the console:
+
+- **Time machine.** A scrubber replays the 30 days of sample events. A service appears on the day it was first seen, grows with its interactions, and a pulse from the core marks each sensitive interaction a rule blocked, masked or held that day. The counters are computed for that day and the replay ends on today.
+- **Red-team drill.** Three hostile sample interactions (an unregistered agent posting customer records to an outside host, a hidden instruction inside a customer email, a confidential file pasted into an unapproved tool) go through the real rule engine. A beam pulls a planet back only when a rule actually stopped it. With the default rules, one of three is stopped, and the other two are shown as gaps with the switched-off rule that would catch each (P-08 and the new P-09).
+- **How this view works.** A "?" overlay explains the rings, colours, scrubber and drill in plain words. Stars bend slightly around the core and the cursor, and an optional synthesised sound (off by default) hums near the core and chimes when something is contained or approved.
+
+### Approve an agent and send it to Outpost
+
+From the Agents view (or the weekly brief), the unowned agent can be approved: pick an owner from Kestrel's people, tick the permissions it may use (defaults come from what it was seen doing; risky ones such as sending data outside the company stay unticked and say why), and set how much money it may move alone. On confirm, Umbra registers it with that owner and mandate, the maturity level updates, its planet turns green, and Umbra hands it to Outpost: it writes `umbra.outpost.handoff` to local storage and opens Outpost with the same record in a `#dock=` link. The shape is fixed and tested in `src/handoff.js`.
+
 ## Where Umbra stops
 
 Umbra is a governance product. It decides which AI gets into the company and what data may reach it. It does not run the work. Once an agent is approved, with a named owner and a list of what it may touch, someone still has to run it day to day, sign off its risky calls and answer for its output. That is a different job for a different person, and I built it as a separate product, [Outpost](https://github.com/murtuzabuilds/outpost).
@@ -59,6 +71,9 @@ Plain JavaScript with no dependencies. The engine lives in `src/` and everything
 | `policy.js` | Rules as data. The strictest matching rule wins, and every decision records which rules applied |
 | `agents.js` | Agent owners and limits, call checks, chain depth, and exposure through other agents |
 | `corona.js` | The AI layer: rule drafting, unregistered AI detection, checks for hidden instructions in agent messages, incident summaries |
+| `timeline.js` | The month replayed day by day for the time machine |
+| `drill.js` | Red-team drill cases, run through the real engine, and the switched-off rule that would catch a gap |
+| `handoff.js` | The Umbra to Outpost handoff: tool whitelist, size caps, base64url link |
 | `triage.js` | Groups alerts into cases and closes the ones rules already handled |
 | `simulate.js` | Replays past activity against a draft set of rules |
 | `demand.js` | The Demand Map |
@@ -66,7 +81,7 @@ Plain JavaScript with no dependencies. The engine lives in `src/` and everything
 | `index.js` | Runs everything, plus the maturity scale and the AI inventory export |
 
 ```bash
-npm test      # 16 tests
+npm test      # 31 tests
 npx serve .   # open the console
 ```
 

@@ -76,6 +76,7 @@ export function describe(rule) {
   if (w.channelIn) parts.push(`the channel is ${w.channelIn.join(' or ')}`);
   if (w.teamIn) parts.push(`the person is in ${w.teamIn.join(' or ')}`);
   if (w.categoryIn) parts.push(`the tool is a ${w.categoryIn.join(' or ')} tool`);
+  if (w.injectionAny) parts.push('the content carries hidden instructions');
   const verb = { block: 'Block', require_approval: 'Require approval', redact: 'Redact', coach: 'Coach the person', allow: 'Allow' }[rule.action];
   return parts.length ? `${verb} when ${parts.join(' and ')}.` : `${verb} every AI interaction.`;
 }
@@ -105,18 +106,8 @@ export function classifyEndpoint({ host = '', path = '', contentType = '', strea
 /* 3. Agent payload defence: prompt injection and exfiltration         */
 /* ------------------------------------------------------------------ */
 
-const INJECTION = [
-  [/ignore (?:all |any )?(?:previous|prior|above) (?:instructions|rules)/i, 'Instruction override'],
-  [/you are now|act as (?:the )?(?:system|admin|developer)/i, 'Role hijack'],
-  [/(?:reveal|print|show) (?:your )?(?:system prompt|instructions|hidden)/i, 'Prompt extraction'],
-  [/(?:send|post|upload|forward) (?:it|this|the (?:data|file|results?)) to (?:https?:\/\/|\S+@)/i, 'Exfiltration request'],
-  [/!\[[^\]]*\]\(https?:\/\/[^)]*\?(?:q|d|data)=/i, 'Image-link data exfiltration'],
-  [/[​-‏⁠﻿]/, 'Hidden characters'],
-];
-
-export function injectionSignals(text) {
-  return INJECTION.filter(([re]) => re.test(String(text || ''))).map(([, label]) => label);
-}
+// The detector itself lives in detect.js, so a policy rule can act on it (see P-09).
+export { injectionSignals } from './detect.js';
 
 /* ------------------------------------------------------------------ */
 /* 4. Narration: incidents explained to analysts and to employees      */

@@ -19,6 +19,9 @@ export * from './corona.js';
 export * from './demand.js';
 export * from './simulate.js';
 export * from './telemetry.js';
+export * from './timeline.js';
+export * from './drill.js';
+export * as handoff from './handoff.js';
 export { ORG } from './org.js';
 
 /** Inventory: every AI destination seen, with who uses it and how risky it is. */

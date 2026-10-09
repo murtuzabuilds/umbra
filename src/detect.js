@@ -109,3 +109,18 @@ export function redact(text, findings) {
 }
 
 export const classesOf = findings => [...new Set(findings.map(f => f.class))];
+
+// Hidden instructions in agent payloads: prompt injection and exfiltration attempts.
+// Plain patterns, so the same message always gets the same answer.
+const INJECTION = [
+  [/ignore (?:all |any )?(?:previous|prior|above) (?:instructions|rules)/i, 'Instruction override'],
+  [/you are now|act as (?:the )?(?:system|admin|developer)/i, 'Role hijack'],
+  [/(?:reveal|print|show) (?:your )?(?:system prompt|instructions|hidden)/i, 'Prompt extraction'],
+  [/(?:send|post|upload|forward) (?:it|this|the (?:data|file|results?)) to (?:https?:\/\/|\S+@)/i, 'Exfiltration request'],
+  [/!\[[^\]]*\]\(https?:\/\/[^)]*\?(?:q|d|data)=/i, 'Image-link data exfiltration'],
+  [/[​-‏⁠﻿]/, 'Hidden characters'],
+];
+
+export function injectionSignals(text) {
+  return INJECTION.filter(([re]) => re.test(String(text || ''))).map(([, label]) => label);
+}

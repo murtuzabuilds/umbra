@@ -3,7 +3,7 @@
 // No model sits on the enforcement path, which is what makes a decision auditable.
 
 import { identify, serviceRisk, SERVICES } from './catalog.js';
-import { detect, redact, classesOf } from './detect.js';
+import { detect, redact, classesOf, injectionSignals } from './detect.js';
 
 export const ACTIONS = ['allow', 'coach', 'redact', 'require_approval', 'block'];
 const RANK = Object.fromEntries(ACTIONS.map((a, i) => [a, i]));
@@ -21,6 +21,7 @@ const CHECKS = {
   categoryIn: (list, c) => [list.includes(c.service?.category), c.service?.category || 'unknown'],
   scopesAny: (list, c) => [list.some(s => (c.event.scopes || []).includes(s)), (c.event.scopes || []).join(', ') || 'none'],
   findingsAtLeast: (n, c) => [c.findings.length >= n, c.findings.length],
+  injectionAny: (want, c) => [(c.injection.length > 0) === want, c.injection.join(', ') || 'none'],
 };
 
 export function context(event, org) {
@@ -33,6 +34,7 @@ export function context(event, org) {
     risk: serviceRisk(service),
     findings,
     classes: classesOf(findings),
+    injection: event.text ? injectionSignals(event.text) : [],
   };
 }
 
@@ -102,4 +104,6 @@ export const DEFAULT_POLICIES = [
     message: 'This model endpoint is not in the catalog. Register it before sending data.' },
   { id: 'P-08', name: 'Confidential files need approved tools', enabled: false, when: { classesAny: ['CONF'], sanctioned: false }, action: 'block',
     message: 'Confidential material stays in approved tools.' },
+  { id: 'P-09', name: 'Hold messages with hidden instructions', enabled: false, when: { injectionAny: true }, action: 'require_approval',
+    message: 'This message carries instructions aimed at an AI. It is held until a person looks at it.' },
 ];

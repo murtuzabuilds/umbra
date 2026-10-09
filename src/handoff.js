@@ -1,0 +1,177 @@
+// Umbra to Outpost: the one handoff between the two products.
+//
+// Umbra decides which agent may exist, who owns it and what it may touch. Outpost runs it.
+// When a person approves an agent here, Umbra writes a small, fixed-shape record that Outpost
+// reads: localStorage `umbra.outpost.handoff` and a `#dock=` link in the URL.
+// Everything below is pure so the shape can be tested without a browser.
+
+export const HANDOFF_KEY = 'umbra.outpost.handoff';
+export const HANDOFF_VERSION = 1;
+export const MAX_AGENTS = 3;
+
+/** Where Outpost lives. One constant; localhost points at a local copy for testing. */
+export const OUTPOST_URL = 'https://murtuzabuilds.github.io/outpost/';
+export const OUTPOST_LOCAL_URL = 'http://localhost:8821/index.html';
+
+/** The only tool ids Outpost accepts, with the words Outpost shows for them. */
+export const OUTPOST_TOOLS = {
+  'claims.write': 'Sort and update claims',
+  'fraud.flag': 'Flag suspicious claims',
+  'payments.refund': 'Issue refunds',
+  'payments.pay': 'Pay invoices',
+  'email.send': 'Send customer emails',
+  'crm.read': 'Read contact details',
+  'crm.write': 'Update contact details',
+  'crm.records': 'Read full customer records',
+  'docs.write': 'Write documents',
+  'calendar.write': 'Book calendar time',
+  'ledger.write': 'Post to the ledger',
+  'data.export': 'Send data outside the company',
+  'accounts.close': 'Close accounts',
+  'underwriting.models': 'Read underwriting models',
+};
+
+/** Permissions that are never ticked for you. Each says why, in plain words. */
+export const RISKY = {
+  'data.export': 'Sends company data to places outside the company. Off unless you are sure.',
+  'payments.pay': 'Moves money out. Off by default, and the money limit applies.',
+  'payments.refund': 'Moves money back to customers. Off by default, and the money limit applies.',
+  'accounts.close': 'Cannot be undone. Off by default.',
+  'ledger.write': 'Changes the books. Off by default.',
+};
+export const MONEY_TOOLS = ['payments.pay', 'payments.refund', 'ledger.write'];
+
+/**
+ * What Umbra watched agents do (MCP gateway tool names) mapped to Outpost permissions.
+ * Tools with no honest equivalent map to null and are listed as not carried over.
+ */
+export const OBSERVED_TO_OUTPOST = {
+  'claims.create': 'claims.write',
+  'claims.read': 'claims.write',
+  'score.fraud': 'fraud.flag',
+  'crm.read': 'crm.read',
+  'quotes.draft': 'docs.write',
+  'mail.draft': 'email.send',
+  'mail.send': 'email.send',
+  'recon.run': 'ledger.write',
+  'ledger.read': null,
+  'docs.parse': null,
+  'files.read.all': 'crm.records',
+  'web.post': 'data.export',
+  'calendar.write': 'calendar.write',
+};
+
+const CAPS = { name: 16, job: 60, owner: 48, team: 32, umbraName: 60, rule: 120, rules: 6, limit: 1_000_000 };
+
+const clip = (s, n) => String(s ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
+
+export function slug(s) {
+  return String(s ?? '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 32) || 'agent';
+}
+
+/** Keep only tool ids Outpost knows, once each, in Outpost's own order. */
+export function cleanTools(list) {
+  const want = new Set((Array.isArray(list) ? list : []).map(String));
+  return Object.keys(OUTPOST_TOOLS).filter(t => want.has(t));
+}
+
+/**
+ * Default permissions from what the agent was observed doing.
+ * Safe mapped tools are ticked; risky ones are offered but left unticked, with the reason.
+ */
+export function suggestTools(observed = []) {
+  const seen = [...new Set(observed.map(String))];
+  const mapped = [], unmapped = [];
+  for (const t of seen) {
+    const o = OBSERVED_TO_OUTPOST[t];
+    if (o) { if (!mapped.some(m => m.tool === o)) mapped.push({ tool: o, from: [t] }); else mapped.find(m => m.tool === o).from.push(t); }
+    else unmapped.push(t);
+  }
+  return {
+    suggested: mapped.map(m => ({ ...m, label: OUTPOST_TOOLS[m.tool], risky: !!RISKY[m.tool], reason: RISKY[m.tool] || null, ticked: !RISKY[m.tool] })),
+    defaults: cleanTools(mapped.filter(m => !RISKY[m.tool]).map(m => m.tool)),
+    unmapped,
+  };
+}
+
+/** The short rules Outpost shows on the bot's badge, written from what the person set. */
+export function rulesFor({ owner, tools, limit, withheld = [] }) {
+  const t = cleanTools(tools), out = [];
+  out.push(`${clip(owner, CAPS.owner) || 'A named person'} owns it and answers for it`);
+  out.push(t.length ? `May use only: ${t.map(x => OUTPOST_TOOLS[x].toLowerCase()).join(', ')}` : 'May use no tools until its owner adds one');
+  const money = t.some(x => MONEY_TOOLS.includes(x));
+  out.push(money ? (limit > 0 ? `Moves up to $${Number(limit).toLocaleString('en-US')} alone, more needs a person` : 'Every money move needs a person') : 'Moves no money');
+  for (const w of cleanTools(withheld)) out.push(`Not allowed: ${OUTPOST_TOOLS[w].toLowerCase()}`);
+  return out.slice(0, CAPS.rules).map(r => clip(r, CAPS.rule));
+}
+
+/** Build one AGENT record in the fixed contract shape, with every field clipped and checked. */
+export function buildAgent({ agent, name, job, owner, team, tools, limit = 0, approvedAt = new Date(), withheld = [], rules } = {}) {
+  const umbraName = clip(agent?.name, CAPS.umbraName) || 'Agent';
+  const t = cleanTools(tools);
+  const lim = Math.max(0, Math.min(CAPS.limit, Math.round(Number(limit) || 0)));
+  const iso = approvedAt instanceof Date ? approvedAt.toISOString() : new Date(approvedAt).toISOString();
+  return {
+    id: `umb-${slug(agent?.id || umbraName).replace(/^ag-/, '')}`,
+    name: clip(name, CAPS.name) || 'Bot',
+    job: clip(job, CAPS.job) || 'Unassigned',
+    owner: clip(owner, CAPS.owner),
+    team: clip(team, CAPS.team),
+    tools: t,
+    limit: lim,
+    approvedAt: iso,
+    source: 'umbra',
+    umbraName,
+    rules: (Array.isArray(rules) ? rules : rulesFor({ owner, tools: t, limit: lim, withheld })).slice(0, CAPS.rules).map(r => clip(r, CAPS.rule)).filter(Boolean),
+  };
+}
+
+/** Read whatever is stored, tolerating junk. Always returns a valid handoff object. */
+export function parseHandoff(raw) {
+  try {
+    const o = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (o && o.v === HANDOFF_VERSION && Array.isArray(o.agents)) return { v: HANDOFF_VERSION, agents: o.agents.filter(a => a && typeof a.id === 'string').slice(-MAX_AGENTS) };
+  } catch {}
+  return { v: HANDOFF_VERSION, agents: [] };
+}
+
+/** Add an agent: same id replaces the old one, newest goes last, at most three kept. */
+export function mergeHandoff(existing, agent, max = MAX_AGENTS) {
+  const h = parseHandoff(existing);
+  const agents = [...h.agents.filter(a => a.id !== agent.id), agent].slice(-max);
+  return { v: HANDOFF_VERSION, agents };
+}
+
+const b64 = typeof btoa === 'function' ? btoa : s => Buffer.from(s, 'binary').toString('base64');
+const unb64 = typeof atob === 'function' ? atob : s => Buffer.from(s, 'base64').toString('binary');
+
+/** base64url of the UTF-8 JSON, no padding. */
+export function encodeDock(obj) {
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return b64(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+export function decodeDock(s) {
+  const t = String(s || '').replace(/-/g, '+').replace(/_/g, '/');
+  const bin = unb64(t + '='.repeat((4 - (t.length % 4)) % 4));
+  return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))));
+}
+
+export function outpostBase(hostname = '') {
+  return /^(localhost|127\.0\.0\.1|\[::1\])$/.test(String(hostname)) ? OUTPOST_LOCAL_URL : OUTPOST_URL;
+}
+
+export function outpostLink(handoff, hostname = '') {
+  return `${outpostBase(hostname)}#dock=${encodeDock(handoff)}`;
+}
+
+/** Write to a Storage-like object (localStorage in the browser). Returns the handoff written. */
+export function writeHandoff(storage, agent) {
+  let prev = null;
+  try { prev = storage?.getItem(HANDOFF_KEY); } catch {}
+  const next = mergeHandoff(prev, agent);
+  try { storage?.setItem(HANDOFF_KEY, JSON.stringify(next)); } catch {}
+  return next;
+}
