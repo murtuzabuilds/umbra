@@ -1,6 +1,7 @@
 import * as U from './src/index.js';
 import { markSVG } from './brand/mark.js';
 import * as H from './src/handoff.js';
+import { draftPolicy } from './src/drafter.js';
 import { users } from './src/org.js';
 
 const $ = s => document.querySelector(s);
@@ -406,8 +407,13 @@ V.policies = () => {
   <div id="sim-out">${S.sim ? simView(S.sim) : ''}</div>`;
 };
 
+function draftSource(c) {
+  return c.source === 'model' ? `<p class="sub" style="margin:0 0 8px">Drafted by a model (${esc(c.model || c.provider || 'model')}) and checked against Umbra's rule language. You review it; Umbra's fixed rules enforce it.</p>`
+    : `<p class="sub" style="margin:0 0 8px">${c.note ? esc(c.note) : 'Drafted by Umbra\'s rules-based parser.'} You review it; Umbra's fixed rules enforce it.</p>`;
+}
 function compiledView(c) {
-  return `<div class="grid g2" style="margin-top:14px"><div><h3>Corona read this as</h3><p style="margin:0 0 8px;font-size:15px;color:var(--ink)">“${esc(c.readable)}”</p>
+  if (!c.rule) return `<div style="margin-top:14px"><h3>Corona (AI assistant) did not draft a rule</h3>${draftSource(c)}${c.doubts.map(d => `<p class="doubt">⚠ ${esc(d)}</p>`).join('')}</div>`;
+  return `<div class="grid g2" style="margin-top:14px"><div><h3>Corona read this as</h3>${draftSource(c)}<p style="margin:0 0 8px;font-size:15px;color:var(--ink)">“${esc(c.readable)}”</p>
     <div class="row"><span class="tag v">confidence ${Math.round(c.confidence * 100)}%</span><span class="act ${c.rule.action}">${c.rule.action.replace('_', ' ')}</span></div>
     ${c.doubts.map(d => `<p class="doubt">⚠ ${esc(d)}</p>`).join('')}
     <button class="btn sm primary" id="nl-add" style="margin-top:12px">Add to draft</button></div>
@@ -646,7 +652,7 @@ document.addEventListener('click', e => {
   if (t.id === 'try-go') { const text = $('#try').value, host = $('#try-tool').value; const dd = U.evaluate({ id: 'try', ts: Date.now(), source: 'browser', channel: 'prompt', user: { id: 'you', name: 'You', team: 'Claims' }, host, text }, S.policies, S.org); $('#try-out').innerHTML = `<div style="margin-top:14px">${decisionCard(dd, { user: { name: 'You', team: 'Claims' }, host, text })}</div>`; return; }
   if (t.id === 'inj-go') { const sig = U.injectionSignals($('#inj').value); $('#inj-out').innerHTML = sig.length ? `<div class="row">${sig.map(s => `<span class="tag crit">${s}</span>`).join('')}</div><p style="color:var(--ink2);font-size:13px;margin:8px 0 0">The message is held before the next agent reads it, and the destination is checked against the sending agent's limits.</p>` : '<span class="tag ok">clean</span>'; return; }
   if (d.nl) { $('#nl').value = d.nl; }
-  if (t.id === 'nl-go' || d.nl) { S.compiled = U.compilePolicy($('#nl').value, { id: `P-${String((S.draft || S.policies).length + 1).padStart(2, '0')}` }); $('#nl-out').innerHTML = compiledView(S.compiled); return; }
+  if (t.id === 'nl-go' || d.nl) { const id = `P-${String((S.draft || S.policies).length + 1).padStart(2, '0')}`, say = $('#nl').value; $('#nl-out').innerHTML = '<p class="sub" style="margin-top:14px">Drafting...</p>'; draftPolicy(say, { id }).then(c => { S.compiled = c; if ($('#nl-out')) $('#nl-out').innerHTML = compiledView(c); }); return; }
   if (t.id === 'nl-add') { S.draft = [...(S.draft || structuredClone(S.policies)), S.compiled.rule]; S.compiled = null; S.sim = null; go('policies'); return toast('Added to the draft. Test it on last month before turning it on.'); }
   if (t.id === 'sim-go') { S.sim = U.simulate(S.events, S.policies, S.draft, S.org); $('#sim-out').innerHTML = simView(S.sim); $('#sim-out').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   if (t.id === 'draft-drop') { S.draft = null; S.sim = null; return go('policies'); }

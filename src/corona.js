@@ -55,7 +55,7 @@ export function compilePolicy(sentence, { id = 'P-NEW' } = {}) {
   return { rule, confidence: Math.max(0.35, 1 - doubts.length * 0.25), doubts, readable: describe(rule) };
 }
 
-function messageFor(action, when) {
+export function messageFor(action, when) {
   const what = when.classesAny ? when.classesAny.map(c => CLASSES[c].toLowerCase()).join(' and ') : 'this';
   return {
     block: `Sending ${what} here is not allowed by company policy.`,
