@@ -123,7 +123,10 @@ function cors(env, origin) {
 }
 const json = (body, status, headers) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store', ...headers } });
 
-export async function handle(request, env, fetchImpl = fetch) {
+/** Settings pasted into a dashboard can carry stray spaces, line breaks or invisible characters. */
+export const clean = v => typeof v === 'string' ? v.replace(/[\u200B-\u200D\uFEFF]/g, '').trim() : v;
+export async function handle(request, rawEnv, fetchImpl = fetch) {
+  const env = Object.fromEntries(Object.entries(rawEnv || {}).map(([k, v]) => [k, clean(v)]));
   const url = new URL(request.url), origin = request.headers.get('origin') || '', h = cors(env, origin);
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: h });
   const provider = (url.searchParams.get('provider') || env.PROVIDER || 'gemini') === 'groq' ? 'groq' : 'gemini';

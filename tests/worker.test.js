@@ -67,3 +67,11 @@ test('the key never appears in any response', async () => {
   const r = await handle(req('/draft', { method: 'POST', body: { say: 'Block secrets.' }, ip: 'leak' }), env, async () => new Response('err', { status: 401 }));
   const t = await r.text(); assert.ok(!t.includes('test-g') && !t.includes('test-q'));
 });
+
+test('settings with stray whitespace or invisible characters still work', async () => {
+  let asked = '';
+  const spy = async (url) => { asked = url; return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"rule":null,"doubts":["x"]}' }] } }] }), { status: 200 }); };
+  const r = await handle(req('/draft', { method: 'POST', body: { say: 'Block secrets.' }, ip: 'ws' }), { GEMINI_API_KEY: ' test-g\n', GEMINI_MODEL: 'gemini-2.5-flash\u200B\n', PROVIDER: ' gemini ' }, spy);
+  assert.equal(r.status, 200);
+  assert.ok(asked.includes('/models/gemini-2.5-flash:generateContent'), asked);
+});
