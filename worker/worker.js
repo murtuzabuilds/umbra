@@ -82,17 +82,17 @@ async function callGemini(env, msg, fetchImpl) {
   const res = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
     body: JSON.stringify({ systemInstruction: { parts: [{ text: msg.system }] }, contents: [{ role: 'user', parts: [{ text: msg.user }] }],
-      generationConfig: { temperature: 0, responseMimeType: 'application/json', maxOutputTokens: 600 } }),
+      generationConfig: { temperature: 0, responseMimeType: 'application/json', maxOutputTokens: 4096 } }), // room for the model's thinking as well as its answer
   });
   if (!res.ok) throw new Error(`gemini ${res.status}`);
   const j = await res.json();
-  return { text: j?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '', model };
+  return { text: j?.candidates?.[0]?.content?.parts?.filter(p => !p.thought).map(p => p.text || '').join('') || '', model };
 }
 async function callGroq(env, msg, fetchImpl) {
   const model = env.GROQ_MODEL || 'openai/gpt-oss-120b';
   const res = await fetchImpl('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${env.GROQ_API_KEY}` },
-    body: JSON.stringify({ model, temperature: 0, max_tokens: 600, response_format: { type: 'json_object' },
+    body: JSON.stringify({ model, temperature: 0, max_tokens: 4096, response_format: { type: 'json_object' }, ...(/gpt-oss/.test(model) ? { reasoning_effort: 'low' } : {}),
       messages: [{ role: 'system', content: msg.system }, { role: 'user', content: msg.user }] }),
   });
   if (!res.ok) throw new Error(`groq ${res.status}`);

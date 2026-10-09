@@ -5,7 +5,7 @@
 import { compilePolicy, messageFor, describe } from './corona.js';
 
 /** Address of the drafter Worker. Empty means rules-based drafting only. */
-export const DRAFTER_URL = '';
+export const DRAFTER_URL = 'https://umbra-drafter.murtuzabuilds.workers.dev';
 
 export async function draftPolicy(sentence, { id = 'P-NEW', url = DRAFTER_URL, fetchImpl = globalThis.fetch, timeoutMs = 8000 } = {}) {
   const s = String(sentence || '').trim();

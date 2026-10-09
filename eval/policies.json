@@ -196,7 +196,18 @@
       "PII"
      ]
     }
-   }
+   },
+   "alt": [
+    {
+     "classesAny": [
+      "PII"
+     ],
+     "channelIn": [
+      "prompt"
+     ]
+    }
+   ],
+   "why": "The sentence says \"out of prompts\", so limiting the rule to the prompt channel is also faithful."
   },
   {
    "n": 14,
