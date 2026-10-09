@@ -98,8 +98,8 @@ V.totality = () => {
     <div class="card kpi"><h3>Open cases</h3><b>${open.length}<sup>open</sup></b><span>from ${fmt(m.alerts)} raw alerts, ${pct(m.noiseReduction)} fewer</span></div>
   </div>
   <div class="grid g21" style="margin-top:14px">
-    <div class="card"><h3>Constellation <small>FURTHER OUT MEANS RISKIER, BIGGER MEANS MORE USE</small></h3>${constellation(R.inventory, { w: 780, h: 460 })}
-      <div class="legend"><span><i style="background:var(--corona)"></i>Approved</span><span><i style="background:var(--flare)"></i>Unapproved</span><span><i style="background:var(--ember)"></i>Unapproved, high risk</span><span><i style="background:var(--plasma)"></i>Unregistered endpoint</span></div></div>
+    <div class="card core-card"><h3>Central intelligence <small>EVERY AI SERVICE ON ORBIT · TIGHTER ORBIT, STRONGER CONTROL</small></h3><canvas id="core" class="core" role="img" aria-label="Umbra at the centre with the ${R.inventory.length} AI services found at Kestrel Mutual on orbit. Approved services sit on the inner rings, unapproved ones further out, high risk on the outer rings."></canvas>
+      <div class="legend"><span><i style="background:#3BE8B0"></i>Approved</span><span><i style="background:#B3A8FF"></i>Unapproved</span><span><i style="background:#FF5A6E"></i>Unapproved, high risk or unregistered</span><span style="margin-left:auto"><a href="#constellation" data-go="constellation" style="color:var(--ink3)">Full constellation →</a></span></div></div>
     <div class="card corona"><span class="ai-badge">This week</span><h3 style="margin-top:8px;font-size:17px;color:var(--ink)">${brief.headline}</h3>
       <div style="color:var(--ink2);font-size:13.5px">${brief.body}</div>
       <div class="row" style="margin-top:14px">${brief.actions.map(a => `<button class="btn sm" data-go="${a[1]}">${a[0]} →</button>`).join('')}</div></div>
@@ -113,6 +113,17 @@ V.totality = () => {
       <button class="btn sm" style="margin-top:12px" data-go="incidents">See all cases</button></div>
   </div>`;
 };
+
+/* the central intelligence: the services in the inventory on orbit around Umbra, placed by status and risk */
+function mountCore() {
+  const cv = $('#core'); if (!cv || !window.umbraSystem) return;
+  const rows = [...R.inventory].sort((a, b) => b.events - a.events).slice(0, 14);
+  const planets = rows.map(r => { const g = r.sanctioned ? 2 : (!r.service || r.risk >= 70) ? 0 : 1;
+    return { n: r.service?.name || r.host, g, o: g === 2 ? Math.min(1.4, r.risk / 100 * 3) : Math.max(1.6, Math.min(5, r.risk / 100 * 5.4)) }; });
+  const wide = innerWidth >= 700;
+  window.umbraSystem(cv, { host: cv, planets, story: false, labels: wide ? 'always' : 'hover', statusNames: ['unapproved, high risk', 'unapproved', 'approved'],
+    geom: (W, H) => { const narrow = W < 560; return { X: W / 2, Y: H / 2, narrow, Rh: Math.max(16, Math.min((W / 2 - (narrow ? 44 : 90)) / 5.2, (H / 2 - (narrow ? 30 : 44)) / (5.2 * .66))) }; } });
+}
 
 function coronaBrief() {
   const m = R.metrics;
@@ -376,6 +387,7 @@ function go(v) {
   document.querySelectorAll('.nav').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   $('#title').innerHTML = TITLES[v];
   $('#view').innerHTML = V[v]();
+  if (v === 'totality') mountCore();
   $('#view').classList.remove('view'); void $('#view').offsetWidth; $('#view').classList.add('view');
   $('#main').scrollTop = 0; $('#rail').classList.remove('open');
   try { history.replaceState(null, '', '#' + v); } catch {}

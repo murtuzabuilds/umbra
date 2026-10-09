@@ -140,3 +140,6 @@ svg text{font-family:var(--display)}
 @media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g21,.g12,.g3{grid-template-columns:1fr}.ladder{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){body{overflow:auto}.app{grid-template-columns:1fr;height:auto}.rail{position:fixed;inset:0 30% 0 0;z-index:40;transform:translateX(-105%);transition:.25s}.rail.open{transform:none}.menu-btn{display:inline-flex}.main{overflow:visible}.view{padding:18px 16px 60px}.top{padding:12px 16px}.g4,.g2{grid-template-columns:1fr}table{font-size:12.5px}.hide-sm{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* central intelligence on the Totality view */
+.core-card canvas.core{display:block;width:100%;height:clamp(300px,42vw,460px);border-radius:10px;background:radial-gradient(ellipse at 50% 50%,#0B0D18 0%,#05060A 72%)}
