@@ -25,6 +25,7 @@ export * from './drill.js';
 export * as handoff from './handoff.js';
 export { ORG, AGENT_OWNERS } from './org.js';
 export * from './status.js';
+export * from './models.js';
 
 /** Inventory: every AI destination seen, with who uses it and how risky it is. */
 export function inventory(events, decisions, org = ORG) {

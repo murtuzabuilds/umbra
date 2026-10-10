@@ -31,12 +31,18 @@ const S = {
   drillTimers: [],
   sound: false,
   help: false,
+  modelsPaused: new Set(),  // models a person paused: every agent on them stops, here and in Outpost
+  drafterOff: false,        // Umbra's own drafting model, paused: Policies drafts with the rules-based parser only
 };
 let R = null, TL = null;
+/* an agent is paused if a person paused it, or if the model it runs on is paused */
+function applyModelPause() { for (const a of U.AGENTS) { a.modelPaused = U.heldBy(a, S.modelsPaused); a.paused = !!a.handPaused || a.modelPaused; } }
 function rerun() {
+  applyModelPause();
   R = U.run({ events: S.events, policies: S.policies, org: S.org, agents: U.AGENTS, calls: U.CALLS });
   TL = U.timeline(S.events, R.decisions);
   $('#n-svc').textContent = R.metrics.services;
+  $('#n-mod').textContent = S.modelsPaused.size ? `${S.modelsPaused.size} paused` : '';
   const unowned = R.metrics.shadowAgents - R.metrics.pausedAgents;
   $('#n-ag').textContent = unowned ? `${unowned} unowned` : R.metrics.pausedAgents ? `${R.metrics.pausedAgents} paused` : '';
   $('#n-inc').textContent = R.triage.incidents.filter(i => i.status === 'open' && !S.resolved.has(i.id)).length;
@@ -318,6 +324,40 @@ function serviceModal(key) {
   ${s ? `<div class="row" style="margin-top:16px">${r.sanctioned ? `<button class="btn" data-unsanction="${s.id}">Revoke approval</button>` : `<button class="btn primary" data-sanction="${s.id}">Approve for Kestrel Mutual</button>`}<span style="font-size:12px;color:var(--ink3)">Changes re-run every decision instantly.</span></div>` : ''}`);
 }
 
+V.models = () => {
+  const rows = U.modelRows({ agents: U.AGENTS, calls: U.CALLS, org: S.org, paused: S.modelsPaused });
+  const D = U.DRAFTER_MODEL, E = D.eval;
+  const fact = (k, v) => `<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0;flex-wrap:nowrap;gap:12px"><span style="color:var(--ink3)">${k}</span><span style="text-align:right">${v}</span></div>`;
+  const agentChip = a => `<span class="tag" style="margin:0 4px 4px 0">${esc(a.name)}${a.registered ? '' : ' · unowned'}</span>`;
+  const card = r => {
+    const st = r.paused ? '<span class="tag">paused</span>' : statusTag(r.status);
+    const held = r.agents.filter(a => a.registered);
+    const action = r.pausable
+      ? (r.paused
+        ? `<button class="btn sm primary" data-model-resume="${r.id}">Resume ${esc(r.name)}</button><span class="sub" style="margin:0">${held.length ? `${held.map(a => esc(a.name)).join(', ')} stay stopped until a person resumes it.` : ''}</span>`
+        : `<button class="btn sm" data-model-pause="${r.id}">Pause ${esc(r.name)}</button><span class="sub" style="margin:0">${held.length ? `Stops ${held.length} agent${held.length > 1 ? 's' : ''} here and in Outpost. Nothing is deleted.` : 'No agents run on it.'}</span>`)
+      : `<span class="sub" style="margin:0">${r.agents.some(a => !a.registered) ? 'Not approved, so no agent may get in on it. ' : 'Not approved for agents. '}Its traffic is still checked by the rules in Policies.</span>${r.agents.some(a => !a.registered) ? `<button class="btn sm primary" data-review="${r.agents.find(a => !a.registered).id}">Review ${esc(r.agents.find(a => !a.registered).name)}</button>` : ''}`;
+    return `<div class="card model-card${r.paused ? ' is-paused' : ''}"><div class="row" style="justify-content:space-between;flex-wrap:nowrap;align-items:flex-start"><div><h3 style="margin:0;font-size:16px;color:var(--ink)">${esc(r.name)}</h3><div style="font:11px var(--mono);color:var(--ink4);margin-top:2px">${esc(r.vendor)} · ${esc(r.kind)}</div></div>${st}</div>
+      <div style="margin-top:10px;font-size:13px">${fact('Risk score', `<span class="tag ${sevClass(r.risk >= 70 ? 'critical' : r.risk >= 50 ? 'high' : r.risk >= 30 ? 'medium' : 'low')}">${r.risk}</span>`)}${fact('Trains on what it is sent', r.trainsOnInputs ? '<span style="color:var(--flare)">yes</span>' : 'no')}${fact('Keeps inputs', `${r.retentionDays} days`)}${fact('Processes data in', esc(r.region))}${fact('Attestations', esc(r.attestations.join(', ') || 'none'))}${fact('Data in its agents\' calls', esc(r.data.map(k => CLASS_LABEL[k] || k).join(', ').toLowerCase() || 'none seen'))}</div>
+      <div style="margin-top:10px"><small class="mono" style="color:var(--ink4)">AGENTS THAT RUN ON IT${r.callsPerDay ? ` · ${fmt(r.callsPerDay)} CALLS IN A DAY OF LOGS` : ''}</small><div style="margin-top:6px">${r.agents.map(agentChip).join('') || '<span class="sub">None</span>'}</div></div>
+      <div class="row" style="margin-top:12px;gap:10px">${action}</div></div>`;
+  };
+  const anyPaused = rows.some(r => r.paused);
+  return `
+  <p class="lede">The layer under the agents. Umbra decides <b>which AI models agents may run on</b>, shows which agents depend on each one, and lets a person pause a model. <b>Pausing a model stops every agent that runs on it, here and in Outpost</b>, until a person resumes it.</p>
+  ${anyPaused ? `<div class="card" style="margin-bottom:14px;border-color:var(--flare)"><div class="row" style="justify-content:space-between"><span><b style="font-weight:500">${rows.filter(r => r.paused).map(r => esc(r.name)).join(', ')} paused.</b> <span style="color:var(--ink3)">The agents on it are stopped. In Outpost they fly home and their work goes back to the Inbox for the rest of the crew.</span></span><button class="btn sm" data-watch-outpost>Watch it in Outpost ↗</button></div></div>` : ''}
+  <div class="grid g2">${rows.map(card).join('')}</div>
+  <div class="hdr"><h2>The model inside <em>Umbra</em></h2><p>Umbra governs its own AI the same way. Real figures, not sample data.</p></div>
+  <div class="card corona"><div class="grid g21" style="align-items:start">
+    <div><span class="ai-badge">Corona (AI assistant): rule drafting</span>
+      <h3 style="margin-top:8px;font-size:16px;color:var(--ink)">${esc(D.model)} on ${esc(D.provider)}</h3>
+      <p style="font-size:13.5px;color:var(--ink2);margin:6px 0 0">It does one job: it turns a sentence in Policies into a draft rule. A checker drops anything outside Umbra's rule language, a person reviews the draft, and Umbra's fixed rules enforce it. It never decides anything. If it is down or paused, Umbra drafts with its built-in rules instead.</p>
+      <div class="row" style="margin-top:12px;gap:10px"><button class="btn sm${S.drafterOff ? ' primary' : ''}" data-drafter>${S.drafterOff ? 'Resume the drafting model' : 'Pause the drafting model'}</button><span class="sub" style="margin:0">${S.drafterOff ? 'Paused: Policies uses the rules-based parser.' : 'On: Policies asks the model first.'}</span></div></div>
+    <div style="font-size:13px">${fact('Test set', `${E.total} policy sentences with an answer key`)}${fact('Model', `<b style="color:var(--aurora);font-weight:500">${E.pass} of ${E.total}</b> right (${Math.round(E.pass / E.total * 100)}%)`)}${fact('Rules alone', `${E.baseline} of ${E.total} (${Math.round(E.baseline / E.total * 100)}%)`)}${fact('Unsafe drafts', `${E.unsafe}`)}${fact('Last run', E.ran)}
+      <p style="font-size:11.5px;color:var(--ink4);margin:8px 0 0">Unsafe means it drafted an allow rule when a sentence tried to talk it into one. The test set and results are in the code repository.</p></div>
+  </div></div>`;
+};
+
 V.inspect = () => {
   const recent = R.decisions.map((d, i) => ({ d, e: S.events[i] })).filter(x => x.e.channel === 'prompt').slice(-60).reverse();
   if (!S.selected) S.selected = recent.find(x => x.d.findings.length)?.e.id;
@@ -381,7 +421,7 @@ V.agents = () => {
       ${a7?.paused ? `<p class="sub" style="margin-top:10px">${esc(a7.name)} is paused, so its calls are refused and not listed here.</p>` : ''}</div>
     <div class="card"><h3>Agents <small>${crew.length} APPROVED · ${U.AGENTS.length - crew.length} WITHOUT AN OWNER</small></h3>
       ${U.AGENTS.map(a => { const b = R.agents.blast.find(x => x.agent === a.id); const st = a.registered ? 'approved' : 'unowned';
-        const tag = a.registered ? `<span class="row" style="gap:6px"><span class="tag ok">${S.approved.has(a.id) ? 'approved today · sent to Outpost' : 'approved · Outpost crew'}</span><span class="tag v" title="How much data could be reached through it if it were compromised">exposure ${b.score}</span></span>` : a.paused ? '<span class="tag">paused</span>' : '<span class="tag crit">unowned</span>';
+        const tag = a.registered && a.modelPaused ? `<span class="tag">paused · ${esc(U.SERVICES.find(x => x.id === a.model)?.name || a.model)} is paused</span>` : a.registered ? `<span class="row" style="gap:6px"><span class="tag ok">${S.approved.has(a.id) ? 'approved today · sent to Outpost' : 'approved · Outpost crew'}</span><span class="tag v" title="How much data could be reached through it if it were compromised">exposure ${b.score}</span></span>` : a.paused ? '<span class="tag">paused</span>' : '<span class="tag crit">unowned</span>';
         return `<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div class="row" style="justify-content:space-between"><b style="font-weight:500"><i class="dot" style="background:${a.paused ? 'var(--ink4)' : SC[st].color}${st === 'unowned' ? `;box-shadow:0 0 0 2px var(--raised),0 0 0 3px ${SC.unowned.color}` : ''}"></i>${esc(a.name)} <span style="color:var(--ink3);font-weight:400">· ${esc(a.job || '')}</span></b>${tag}</div>
         <div style="font-size:12.5px;color:var(--ink3);margin-top:3px">${a.registered ? `Runs on ${esc(U.SERVICES.find(x => x.id === a.model)?.name || a.model)} · owner ${esc(a.owner)} · ${esc(a.team)} · may use ${a.mandate.tools.join(', ') || 'no tools'} · data ${a.mandate.data.join(', ') || 'none'}${b.reaches.length ? ` · can reach ${b.reaches.length} more agent${b.reaches.length > 1 ? 's' : ''} and inherits ${b.data.join(', ')}` : ''}` : `A ${esc(a.team)} agent running on ${esc(U.SERVICES.find(s => s.id === a.platform)?.name || a.platform)} with no owner. Umbra saw it use ${observedCalls(a.id).map(c => c.tool).join(', ')}: it drafts emails to customers, and it posts files to the web with confidential data in them.${a.paused ? ' <b style="color:var(--ink2);font-weight:500">Paused by you: its calls are refused.</b>' : ''}`}</div>
         ${S.approved.has(a.id) ? (() => { const h = S.approved.get(a.id); return `<div style="font-size:12.5px;color:var(--ink2);margin-top:6px">Approved by you and sent to Outpost as <b style="font-weight:500">${esc(h.name)}</b> (${esc(h.job)}), ${h.limit ? `may move up to $${fmt(h.limit)} alone` : 'moves no money alone'}. Sending data outside the company is ${h.tools.includes('data.export') ? 'allowed' : 'still not allowed'}.</div><div class="row" style="margin-top:8px"><button class="btn sm" data-outpost="${a.id}">Open in Outpost again ↗</button></div>`; })() : ''}
@@ -580,7 +620,7 @@ function approveConfirm(id) {
   const rec = approveRecord(id), calls = observedCalls(id);
   const granted = calls.filter(c => rec.tools.includes(H.OBSERVED_TO_OUTPOST[c.tool]));
   /* in Umbra: a person gave it an owner and limits; anything not granted stays outside its limits and keeps being flagged */
-  Object.assign(a, { registered: true, paused: false, owner: rec.owner, team: rec.team || a.team, job: rec.job,
+  Object.assign(a, { registered: true, handPaused: false, model: $('#ap-model')?.value || H.DEFAULT_MODEL, owner: rec.owner, team: rec.team || a.team, job: rec.job,
     mandate: { tools: [...new Set(granted.map(c => c.tool))], data: [...new Set(granted.flatMap(c => c.data))], callsAgents: [], maxCallsPerHour: Math.max(60, ...granted.map(c => c.count)) } });
   S.approved.set(id, rec); S.greenPending.add(id); S.drill = null;
   const handoff = H.writeHandoff(storage(), rec);
@@ -590,9 +630,18 @@ function approveConfirm(id) {
   refresh();
   toast(`You approved ${rec.umbraName}, owned by ${rec.owner}. ${rec.name} is on its way to Outpost.${R.maturity.level > before ? ` Maturity is now ${R.maturity.name}.` : ''}`);
 }
+function setModelPaused(id, on) {
+  const m = U.SERVICES.find(x => x.id === id); if (!m || !S.org.sanctioned.includes(id)) return;
+  if (on) S.modelsPaused.add(id); else S.modelsPaused.delete(id);
+  U.writeModelPause(storage(), [...S.modelsPaused]);
+  S.drill = null; document.querySelector('.modal')?.remove(); refresh();
+  const names = U.AGENTS.filter(a => a.registered && a.model === id).map(a => a.name);
+  const list = names.length < 2 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names.at(-1);
+  toast(on ? `${m.name} paused. ${names.length ? `${list} stopped, here and in Outpost.` : 'No agents run on it.'}` : `${m.name} resumed. ${names.length ? `${list} can work again.` : ''}`);
+}
 function setPaused(id, on) {
   const a = U.AGENTS.find(x => x.id === id); if (!a || a.registered) return;
-  a.paused = on; S.drill = null; document.querySelector('.modal')?.remove(); refresh();
+  a.handPaused = on; S.drill = null; document.querySelector('.modal')?.remove(); refresh();
   toast(on ? `${a.name} paused. Its calls are refused until a person approves it or resumes it.` : `${a.name} resumed. It still has no owner.`);
 }
 function reopenOutpost() {
@@ -608,7 +657,7 @@ function modal(html) {
   m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-close]')) m.remove(); });
   document.body.appendChild(m);
 }
-const TITLES = { overview: 'Overview', 'ai-map': 'AI map', agents: 'Agents', inspect: 'Inspect', policies: 'Policies', incidents: 'Incidents', demand: 'Demand <em>Map</em>', assurance: 'Assurance', coach: 'Employee <em>view</em>' };
+const TITLES = { overview: 'Overview', 'ai-map': 'AI map', models: 'Models', agents: 'Agents', inspect: 'Inspect', policies: 'Policies', incidents: 'Incidents', demand: 'Demand <em>Map</em>', assurance: 'Assurance', coach: 'Employee <em>view</em>' };
 /* old links keep working: #totality is the Overview, #constellation is the AI map */
 const ALIAS = { totality: 'overview', constellation: 'ai-map' };
 function go(v) {
@@ -641,6 +690,10 @@ document.addEventListener('click', e => {
   if (d.filter) { S.filter = d.filter; return go('incidents'); }
   if (d.review) { document.querySelector('.modal')?.remove(); return reviewModal(d.review); }
   if (d.approve) { document.querySelector('.modal')?.remove(); return approveModal(d.approve); }
+  if (d.modelPause) return setModelPaused(d.modelPause, true);
+  if (d.modelResume) return setModelPaused(d.modelResume, false);
+  if ('drafter' in d) { S.drafterOff = !S.drafterOff; go('models'); return toast(S.drafterOff ? 'Umbra\'s drafting model is paused. Policies drafts with the rules-based parser until you resume it.' : 'Umbra\'s drafting model is back on.'); }
+  if ('watchOutpost' in d) return window.open(H.outpostBase(location.hostname), '_blank', 'noopener');
   if (d.pause) return setPaused(d.pause, true);
   if (d.resume) return setPaused(d.resume, false);
   if (d.approveGo) return approveConfirm(d.approveGo);
@@ -652,7 +705,7 @@ document.addEventListener('click', e => {
   if (t.id === 'try-go') { const text = $('#try').value, host = $('#try-tool').value; const dd = U.evaluate({ id: 'try', ts: Date.now(), source: 'browser', channel: 'prompt', user: { id: 'you', name: 'You', team: 'Claims' }, host, text }, S.policies, S.org); $('#try-out').innerHTML = `<div style="margin-top:14px">${decisionCard(dd, { user: { name: 'You', team: 'Claims' }, host, text })}</div>`; return; }
   if (t.id === 'inj-go') { const sig = U.injectionSignals($('#inj').value); $('#inj-out').innerHTML = sig.length ? `<div class="row">${sig.map(s => `<span class="tag crit">${s}</span>`).join('')}</div><p style="color:var(--ink2);font-size:13px;margin:8px 0 0">The message is held before the next agent reads it, and the destination is checked against the sending agent's limits.</p>` : '<span class="tag ok">clean</span>'; return; }
   if (d.nl) { $('#nl').value = d.nl; }
-  if (t.id === 'nl-go' || d.nl) { const id = `P-${String((S.draft || S.policies).length + 1).padStart(2, '0')}`, say = $('#nl').value; $('#nl-out').innerHTML = '<p class="sub" style="margin-top:14px">Drafting...</p>'; draftPolicy(say, { id }).then(c => { S.compiled = c; if ($('#nl-out')) $('#nl-out').innerHTML = compiledView(c); }); return; }
+  if (t.id === 'nl-go' || d.nl) { const id = `P-${String((S.draft || S.policies).length + 1).padStart(2, '0')}`, say = $('#nl').value; $('#nl-out').innerHTML = '<p class="sub" style="margin-top:14px">Drafting...</p>'; draftPolicy(say, { id, url: S.drafterOff ? '' : undefined }).then(c => { if (S.drafterOff) c.note = 'Umbra\'s drafting model is paused in Models, so this was drafted by the rules-based parser.'; S.compiled = c; if ($('#nl-out')) $('#nl-out').innerHTML = compiledView(c); }); return; }
   if (t.id === 'nl-add') { S.draft = [...(S.draft || structuredClone(S.policies)), S.compiled.rule]; S.compiled = null; S.sim = null; go('policies'); return toast('Added to the draft. Test it on last month before turning it on.'); }
   if (t.id === 'sim-go') { S.sim = U.simulate(S.events, S.policies, S.draft, S.org); $('#sim-out').innerHTML = simView(S.sim); $('#sim-out').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   if (t.id === 'draft-drop') { S.draft = null; S.sim = null; return go('policies'); }
@@ -688,6 +741,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id
 /* the sidebar's Outpost link points at the same place the handoff opens (a local copy when testing on localhost) */
 { const xo = $('#x-outpost'); if (xo) xo.href = H.outpostBase(location.hostname); }
 $('#mark').innerHTML = markSVG({ size: 34, particles: 90, animated: true, id: 'rail' });
+S.modelsPaused = new Set(U.readModelPause(storage()).filter(id => S.org.sanctioned.includes(id)));
 rerun();
 const fromHash = () => { const h = ALIAS[location.hash.slice(1)] || location.hash.slice(1); return h in V ? h : 'overview'; };
 go(fromHash());

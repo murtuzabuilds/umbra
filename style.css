@@ -202,3 +202,4 @@ input[type=number]:focus,.ap-fields select:focus{border-color:var(--plasma)}
 @media(max-width:520px){.pill-demo{font-size:10.5px;padding:5px 9px}}
 @media(max-width:760px){.app{grid-template-columns:minmax(0,1fr)}.main{min-width:0}.top{flex-wrap:wrap;row-gap:8px}.top h1{min-width:0}.pill-demo{white-space:normal;text-align:left}}
 .grid>*{min-width:0}
+.model-card.is-paused{border-color:rgba(255,179,71,.45)}.model-card.is-paused h3{color:var(--ink3)!important}
