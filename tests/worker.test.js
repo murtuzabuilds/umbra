@@ -75,3 +75,22 @@ test('settings with stray whitespace or invisible characters still work', async 
   assert.equal(r.status, 200);
   assert.ok(asked.includes('/models/gemini-2.5-flash:generateContent'), asked);
 });
+
+test('a retired Gemini name falls through to the next one, and the provider reason is shown without the key', async () => {
+  const asked = [];
+  const spy = async (url) => { asked.push(url); return url.includes('gemini-3.1-flash-lite')
+    ? new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"rule":{"action":"block","when":{"classesAny":["SECRET"]}},"doubts":[]}' }] } }] }), { status: 200 })
+    : new Response(JSON.stringify({ error: { message: 'models/x is not found for key test-g' } }), { status: 404 }); };
+  const r = await handle(req('/draft', { method: 'POST', body: { say: 'Block secrets.', provider: 'gemini' }, ip: 'fb' }), { ...env, GEMINI_MODEL: 'gemini-2.5-flash' }, spy);
+  const j = await r.json();
+  assert.equal(r.status, 200); assert.equal(j.model, 'gemini-3.1-flash-lite'); assert.equal(asked.length, 3);
+  const all404 = async () => new Response(JSON.stringify({ error: { message: 'not found for key test-g' } }), { status: 404 });
+  const t = await (await handle(req('/draft', { method: 'POST', body: { say: 'Block secrets.', provider: 'gemini' }, ip: 'fb2' }), env, all404)).text();
+  assert.ok(t.includes('not found') && t.includes('[key]') && !t.includes('test-g'), t);
+});
+
+test('a quota error does not burn through the other model names', async () => {
+  let n = 0; const quota = async () => { n++; return new Response(JSON.stringify({ error: { message: 'quota' } }), { status: 429 }); };
+  const r = await handle(req('/draft', { method: 'POST', body: { say: 'Block secrets.', provider: 'gemini' }, ip: 'q' }), env, quota);
+  assert.equal(r.status, 502); assert.equal(n, 1);
+});

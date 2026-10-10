@@ -7,7 +7,7 @@
 // Deploy: paste this whole file into a Cloudflare Worker. Add secrets GEMINI_API_KEY and/or
 // GROQ_API_KEY under Settings > Variables and Secrets. Optional plain variables:
 //   PROVIDER         'gemini' (default) or 'groq'
-//   GEMINI_MODEL     default 'gemini-flash-latest'
+//   GEMINI_MODEL     optional; if unset or unavailable, tries GEMINI_FALLBACKS in order
 //   GROQ_MODEL       default 'openai/gpt-oss-120b'
 //   ALLOWED_ORIGINS  comma separated, default 'https://murtuzabuilds.github.io'
 // Endpoints: GET /health, GET /models?provider=, POST /draft {"say": "...", "provider"?: "groq"}
@@ -77,16 +77,28 @@ export function parseDraft(text) {
 }
 
 /* ---------- providers ---------- */
+/** Google retires model names and blocks some for new keys, so a 404 or 400 on one name moves on to the next. */
+export const GEMINI_FALLBACKS = ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite', 'gemini-flash-latest'];
+/** The provider's own error text, trimmed, with anything that looks like a key removed. */
+const reason = async (res, env) => {
+  let t = ''; try { const j = await res.json(); t = String(j?.error?.message || ''); } catch { return ''; }
+  for (const k of [env.GEMINI_API_KEY, env.GROQ_API_KEY]) if (k) t = t.split(k).join('[key]');
+  return t.replace(/AIza[\w-]{10,}|gsk_[\w-]{10,}/g, '[key]').slice(0, 160);
+};
 async function callGemini(env, msg, fetchImpl) {
-  const model = env.GEMINI_MODEL || 'gemini-flash-latest';
-  const res = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-    method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: msg.system }] }, contents: [{ role: 'user', parts: [{ text: msg.user }] }],
-      generationConfig: { temperature: 0, responseMimeType: 'application/json', maxOutputTokens: 4096 } }), // room for the model's thinking as well as its answer
-  });
-  if (!res.ok) throw new Error(`gemini ${res.status}`);
-  const j = await res.json();
-  return { text: j?.candidates?.[0]?.content?.parts?.filter(p => !p.thought).map(p => p.text || '').join('') || '', model };
+  const names = [...new Set([env.GEMINI_MODEL, ...GEMINI_FALLBACKS].filter(Boolean))];
+  let last = '';
+  for (const model of names) {
+    const res = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: msg.system }] }, contents: [{ role: 'user', parts: [{ text: msg.user }] }],
+        generationConfig: { temperature: 0, responseMimeType: 'application/json', maxOutputTokens: 4096 } }), // room for the model's thinking as well as its answer
+    });
+    if (res.ok) { const j = await res.json(); return { text: j?.candidates?.[0]?.content?.parts?.filter(p => !p.thought).map(p => p.text || '').join('') || '', model }; }
+    last = `gemini ${res.status} on ${model}: ${await reason(res, env)}`;
+    if (res.status !== 404 && res.status !== 400) break; // quota or outage: another name will not help
+  }
+  throw new Error(last);
 }
 async function callGroq(env, msg, fetchImpl) {
   const model = env.GROQ_MODEL || 'openai/gpt-oss-120b';
@@ -95,7 +107,7 @@ async function callGroq(env, msg, fetchImpl) {
     body: JSON.stringify({ model, temperature: 0, max_tokens: 4096, response_format: { type: 'json_object' }, ...(/gpt-oss/.test(model) ? { reasoning_effort: 'low' } : {}),
       messages: [{ role: 'system', content: msg.system }, { role: 'user', content: msg.user }] }),
   });
-  if (!res.ok) throw new Error(`groq ${res.status}`);
+  if (!res.ok) throw new Error(`groq ${res.status} on ${model}: ${await reason(res, env)}`);
   const j = await res.json();
   return { text: j?.choices?.[0]?.message?.content || '', model };
 }
@@ -148,7 +160,7 @@ export async function handle(request, rawEnv, fetchImpl = fetch) {
     const out = await (p === 'groq' ? callGroq : callGemini)(env, buildMessages(say), fetchImpl);
     return json({ ...parseDraft(out.text), provider: p, model: out.model }, 200, h);
   } catch (e) {
-    return json({ error: 'The model is unavailable right now.', detail: String(e.message || e).slice(0, 40) }, 502, h);
+    return json({ error: 'The model is unavailable right now.', detail: String(e.message || e).slice(0, 240) }, 502, h);
   }
 }
 
