@@ -94,3 +94,28 @@ test('a quota error does not burn through the other model names', async () => {
   const r = await handle(req('/draft', { method: 'POST', body: { say: 'Block secrets.', provider: 'gemini' }, ip: 'q' }), env, quota);
   assert.equal(r.status, 502); assert.equal(n, 1);
 });
+
+/* ---------- CardRight's endpoint on the same Worker ---------- */
+import { CR_CATEGORIES, parseCategory, buildCategoryMessages } from '../worker/worker.js';
+
+test('CardRight: the Worker knows exactly the categories CardRight\'s engine uses', async () => {
+  let C; try { C = await import('../../cardright/src/cards.js'); } catch { return; } // skipped when CardRight is not checked out next to Umbra
+  assert.deepEqual(Object.keys(CR_CATEGORIES).sort(), Object.keys(C.CATEGORY).sort());
+  for (const k of Object.keys(CR_CATEGORIES)) assert.ok(buildCategoryMessages('x').system.includes(`- ${k}:`));
+});
+
+test('CardRight: only a known category gets out, and a model never picks a card', () => {
+  assert.deepEqual(parseCategory('{"cat":"dining","sure":true,"why":"Italian restaurant"}'), { cat: 'dining', sure: true, why: 'Italian restaurant' });
+  assert.equal(parseCategory('{"cat":"sapphire_preferred","sure":true}').cat, null);
+  assert.equal(parseCategory('use the Amex').cat, null);
+  assert.equal(parseCategory('{"cat":"gas","sure":"yes"}').sure, false);
+});
+
+test('CardRight: /category end to end, with limits and no key in the answer', async () => {
+  const ok = await handle(req('/category', { method: 'POST', body: { merchant: 'Trattoria Bella' }, ip: 'cr1' }), env, fakeModel('{"cat":"dining","sure":true,"why":"restaurant"}'));
+  const j = await ok.json(); assert.equal(ok.status, 200); assert.equal(j.cat, 'dining');
+  const long = await handle(req('/category', { method: 'POST', body: { merchant: 'x'.repeat(81) }, ip: 'cr2' }), env, fakeModel('{}'));
+  assert.equal(long.status, 400);
+  const down = await handle(req('/category', { method: 'POST', body: { merchant: 'Golden Wok' }, ip: 'cr3' }), env, async () => new Response('{"error":{"message":"bad key test-q"}}', { status: 401 }));
+  const t = await down.text(); assert.equal(down.status, 502); assert.ok(!t.includes('test-q') && !t.includes('test-g'));
+});
