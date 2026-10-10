@@ -28,7 +28,7 @@ export const SERVICES = [
   { id: 'sonar', name: 'Sonar Search', vendor: 'Sonar', category: 'search', domains: ['sonar.search'], trainsOnInputs: false, retentionDays: 7, attestations: ['SOC 2'], region: 'US', tier: 'prosumer' },
   { id: 'relay', name: 'Relay Agents', vendor: 'Relay', category: 'agent', domains: ['relay.run', 'mcp.relay.run'], trainsOnInputs: false, retentionDays: 30, attestations: ['SOC 2'], region: 'US', tier: 'enterprise' },
   { id: 'loopwork', name: 'Loopwork', vendor: 'Loopwork', category: 'agent', domains: ['loopwork.ai'], trainsOnInputs: true, retentionDays: 90, attestations: [], region: 'Unknown', tier: 'consumer' },
-  { id: 'nova-api', name: 'Nova Model API', vendor: 'Nova Compute', category: 'api', domains: ['api.novacompute.ai'], trainsOnInputs: false, retentionDays: 0, attestations: ['SOC 2', 'ISO 42001'], region: 'US/EU', tier: 'enterprise' },
+  { id: 'vega-api', name: 'Vega Model API', vendor: 'Vega Compute', category: 'api', domains: ['api.vegacompute.ai'], trainsOnInputs: false, retentionDays: 0, attestations: ['SOC 2', 'ISO 42001'], region: 'US/EU', tier: 'enterprise' },
   { id: 'deepwell', name: 'Deepwell API', vendor: 'Deepwell', category: 'api', domains: ['api.deepwell.cn'], trainsOnInputs: true, retentionDays: 365, attestations: [], region: 'Outside allowed regions', tier: 'consumer' },
 ];
 

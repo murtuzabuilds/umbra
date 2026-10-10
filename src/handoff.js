@@ -49,7 +49,7 @@ export const SEEN_WITH_CONF = 'It was seen with confidential data. Off unless yo
 
 export const MONEY_TOOLS = ['payments.pay', 'payments.refund', 'ledger.write'];
 /** Models an agent may run on to get in: approved services that serve models (catalog ids and the names Outpost shows). */
-export const AGENT_MODELS = { aster: 'Aster Enterprise', 'nova-api': 'Nova Model API' };
+export const AGENT_MODELS = { aster: 'Aster Enterprise', 'vega-api': 'Vega Model API' };
 export const DEFAULT_MODEL = 'aster';
 
 /**

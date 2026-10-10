@@ -32,6 +32,8 @@ The early AI security startups were bought by large security vendors in 2024 and
 | ![](docs/time-machine.webp) | ![](docs/incidents.webp) |
 | **Demand Map**: where approved AI would help most, as a now, next and later list | **Assurance**: controls mapped to the EU AI Act, ISO/IEC 42001, NIST AI RMF and SOC 2, with exports |
 | ![](docs/demand.webp) | ![](docs/assurance.webp) |
+| **Models**: the models agents run on, who depends on each, and a pause that stops every agent on it, here and in Outpost | |
+| ![](docs/models.webp) | |
 
 ![What an employee sees](docs/coach.webp)
 
@@ -65,7 +67,7 @@ The eight agents Umbra already approved are the Outpost crew, with the same name
 
 ### Models: pause one, and every agent on it stops
 
-Models is the layer under the agents. It lists the models Kestrel's agents run on (Aster Enterprise and Nova Model API, both approved; Loopwork, where Agent 7f3 was seen, and Deepwell API, both high risk), with the risk facts for each, the data seen in its agents' calls and the agents that depend on it. An approved model can be paused by a person: every agent on it stops at once, in Umbra and in Outpost, where the bots fly home and their work goes back to the Inbox for the rest of the crew. Resuming the model frees exactly those bots; a bot paused by hand in Outpost stays paused. Umbra writes `umbra.models.paused` to local storage and Outpost listens for it, so on the shared origin the change shows up live in an open Outpost tab or in the copy on the portfolio page. The shape is fixed and tested on both sides (`src/models.js`).
+Models is the layer under the agents. It lists the models Kestrel's agents run on (Aster Enterprise and Vega Model API, both approved; Loopwork, where Agent 7f3 was seen, and Deepwell API, both high risk), with the risk facts for each, the data seen in its agents' calls and the agents that depend on it. An approved model can be paused by a person: every agent on it stops at once, in Umbra and in Outpost, where the bots fly home and their work goes back to the Inbox for the rest of the crew. Resuming the model frees exactly those bots; a bot paused by hand in Outpost stays paused. Umbra writes `umbra.models.paused` to local storage and Outpost listens for it, so on the shared origin the change shows up live in an open Outpost tab or in the copy on the portfolio page. The shape is fixed and tested on both sides (`src/models.js`).
 
 The same screen governs the one real model in Umbra: the drafting model behind Policies (`openai/gpt-oss-120b` on Groq, through `worker/`). It shows its real test results (43 of 51 policy sentences right, against 28 for the rules-based parser, and no unsafe drafts), and it can be paused too, which sends Policies to the rules-based parser.
 

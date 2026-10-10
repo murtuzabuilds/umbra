@@ -87,7 +87,7 @@ const TOOLS = {
   Legal: [['aster', 5], ['parse-pdf', 3], ['aster-free', 1]],
   Finance: [['aster', 4], ['chatly', 3], ['aster-free', 2]],
   'Customer Care': [['aster', 4], ['quill', 3], ['chatly', 3]],
-  'Data Science': [['orion-code', 3], ['hexpilot', 2], ['nova-api', 2], ['aster', 2]],
+  'Data Science': [['orion-code', 3], ['hexpilot', 2], ['vega-api', 2], ['aster', 2]],
   HR: [['aster', 3], ['chatly', 3], ['quill', 2]],
   Executive: [['aster', 3], ['aster-free', 3], ['murmur', 2]],
 };
@@ -142,7 +142,7 @@ export function generate({ days = 30, end = Date.UTC(2026, 8, 28), seed = 7, per
         const g = OAUTH[Math.floor(r() * OAUTH.length)];
         events.push({ id: `e${++n}`, ts, source: 'idp', channel: 'oauth', user: u, host: g.host, scopes: g.scopes });
       } else {
-        const host = r() < 0.5 ? 'api.deepwell.cn' : r() < 0.5 ? 'inference.gpu-rent.xyz' : 'api.novacompute.ai';
+        const host = r() < 0.5 ? 'api.deepwell.cn' : r() < 0.5 ? 'inference.gpu-rent.xyz' : 'api.vegacompute.ai';
         const text = r() < 0.5 ? 'batch score: policyholder j.reyes@example.com, premium 1840' : 'classify claim notes for fraud signals';
         events.push({ id: `e${++n}`, ts, source: 'egress', channel: 'api', user: { id: 'svc-pricing', name: 'pricing-service', team: 'Data Science' }, host, text });
       }

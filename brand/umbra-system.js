@@ -68,7 +68,7 @@ const bandOf = o => Object.keys(STATUS).find(k => k !== 'unowned' && o > STATUS[
 const hashT = s => { let h = 7; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return (h % 1000) / 999; };
 /* the sample month's services with their status and size by interactions (same data as the Umbra console) */
 const DEFAULT_PLANETS = [
-  ['Aster Enterprise', 'approved', 1.55], ['Orion Code', 'approved', 1.03], ['Nova Model API', 'approved', 0.85], ['Relay Agents', 'approved', 0.75],
+  ['Aster Enterprise', 'approved', 1.55], ['Orion Code', 'approved', 1.03], ['Vega Model API', 'approved', 0.85], ['Relay Agents', 'approved', 0.75],
   ['Quill Write', 'unapproved', 1.13], ['Murmur Notes', 'unapproved', 0.9], ['Sonar Search', 'unapproved', 0.79],
   ['Chatly', 'high', 1.24], ['Aster Free', 'high', 1.05], ['HexPilot', 'high', 0.98], ['ParsePDF AI', 'high', 0.92], ['Deepwell API', 'high', 0.88],
   ['Loopwork', 'high', 0.74], ['inference.gpu-rent.xyz', 'high', 0.71], ['Lumen Draw', 'high', 0.71],

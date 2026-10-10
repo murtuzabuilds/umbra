@@ -5,7 +5,7 @@
 export const ORG = {
   name: 'Kestrel Mutual',
   employees: 2400,
-  sanctioned: ['aster', 'orion-code', 'vela-meet', 'relay', 'nova-api'],
+  sanctioned: ['aster', 'orion-code', 'vela-meet', 'relay', 'vega-api'],
   dict: {
     customers: ['Brightline Logistics', 'Harbor & Vine', 'Okafor Holdings', 'Pinecrest Schools'],
     codenames: ['Halcyon', 'Tidewater'],

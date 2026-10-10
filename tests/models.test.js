@@ -9,7 +9,7 @@ test('the Models view lists the models agents run on, each with the agents that 
   const rows = U.modelRows({ agents: U.AGENTS, calls: U.CALLS, org: U.ORG });
   const by = Object.fromEntries(rows.map(r => [r.id, r]));
   assert.deepEqual(by.aster.agents.map(a => a.name), ['Pip', 'Juno', 'Kite', 'Bolt', 'Dot']);
-  assert.deepEqual(by['nova-api'].agents.map(a => a.name), ['Sable', 'Moss', 'Rook']);
+  assert.deepEqual(by['vega-api'].agents.map(a => a.name), ['Sable', 'Moss', 'Rook']);
   assert.equal(by.loopwork.status, 'high'); assert.equal(by.loopwork.pausable, false);
   assert.ok(by.deepwell && !by.deepwell.agents.length);
   for (const a of U.AGENTS) assert.ok(rows.some(r => r.id === a.model), `${a.name}'s model is listed`);
@@ -17,16 +17,16 @@ test('the Models view lists the models agents run on, each with the agents that 
 });
 
 test('pausing a model holds exactly its approved agents', () => {
-  const paused = new Set(['nova-api']);
+  const paused = new Set(['vega-api']);
   const held = U.AGENTS.filter(a => U.heldBy(a, paused)).map(a => a.name);
   assert.deepEqual(held, ['Sable', 'Moss', 'Rook']);
 });
 
 test('the pause record Outpost reads carries catalog names, and junk never gets in', () => {
   const s = mem();
-  const rec = U.writeModelPause(s, ['nova-api', 'nova-api', 'not-a-model']);
-  assert.deepEqual(rec, { v: 1, paused: [{ id: 'nova-api', name: 'Nova Model API' }] });
-  assert.deepEqual(U.readModelPause(s), ['nova-api']);
+  const rec = U.writeModelPause(s, ['vega-api', 'vega-api', 'not-a-model']);
+  assert.deepEqual(rec, { v: 1, paused: [{ id: 'vega-api', name: 'Vega Model API' }] });
+  assert.deepEqual(U.readModelPause(s), ['vega-api']);
   U.writeModelPause(s, []); assert.equal(s.getItem(U.MODEL_PAUSE_KEY), null);
   s.setItem(U.MODEL_PAUSE_KEY, '{"v":1,"paused":[{"id":"<img>"}]}'); assert.deepEqual(U.readModelPause(s), []);
   s.setItem(U.MODEL_PAUSE_KEY, 'not json'); assert.deepEqual(U.readModelPause(s), []);
