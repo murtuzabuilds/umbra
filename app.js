@@ -10,6 +10,7 @@ const pct = (x, d = 0) => `${(x * 100).toFixed(d)}%`;
 const fmt = n => Number(n).toLocaleString('en-US');
 const day = ts => new Date(ts).toISOString().slice(5, 10);
 const CLASS_LABEL = U.CLASSES;
+const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
 
 /* ------------------------------------------------------------------ state */
 const S = {
@@ -23,7 +24,7 @@ const S = {
   filter: 'open',
   compiled: null,
   sim: null,
-  approved: new Map(),   // agents approved in this session and sent to Outpost
+  approved: new Map(),   // agents a person approved and sent to Outpost (rebuilt from the handoff after a reload)
   greenPending: new Set(),
   core: null,            // handle returned by window.umbraSystem
   tm: { day: null, timer: null },
@@ -83,7 +84,7 @@ function trendChart(events, decisions, w = 720, h = 190) {
 const legendHTML = (items, extra = '') => `<div class="legend">${items.map(([k, label]) => `<span><i style="background:${SC[k].color}${SC[k].dashed ? `;box-shadow:0 0 0 2px var(--deep),0 0 0 3px ${SC[k].color}` : ''}"></i>${label}</span>`).join('')}${extra}</div>`;
 
 function constellation(inv, { w = 620, h = 440, labels = true } = {}) {
-  const cx = w / 2, cy = h / 2;
+  const cx = w / 2, cy = h / 2, w0 = w;
   const cats = Object.keys(U.CATEGORIES);
   const byCat = cats.map(c => inv.filter(r => (r.service?.category || 'api') === c));
   const maxE = Math.max(...inv.map(r => r.events));
@@ -97,7 +98,20 @@ function constellation(inv, { w = 620, h = 440, labels = true } = {}) {
   const orbits = [0.33, 0.66, 1].map(f => `<ellipse cx="${cx}" cy="${cy}" rx="${88 + f * (Math.min(w, h) / 2 - 130)}" ry="${(88 + f * (Math.min(w, h) / 2 - 130)) * 0.92}" fill="none" stroke="var(--line)" stroke-dasharray="1 5"/>`).join('');
   const catLabels = labels ? cats.map((c, i) => { const a = (i / cats.length) * Math.PI * 2 - Math.PI / 2; const d = Math.min(w, h) / 2 - 8; return `<text x="${cx + Math.cos(a) * d * 1.32}" y="${cy + Math.sin(a) * d * 0.96 + 4}" fill="var(--ink4)" font-size="9.5" letter-spacing="1.5" text-anchor="middle" font-family="var(--mono)">${U.CATEGORIES[c].toUpperCase()}</text>`; }).join('') : '';
   const links = nodes.map(n => `<line x1="${cx}" y1="${cy}" x2="${n.x}" y2="${n.y}" stroke="${color(n.r)}" stroke-opacity=".12"/>`).join('');
-  const dots = nodes.map(({ j, ...n }) => ({ ...n, j })).map(n => `<g class="cn" data-key="${esc(n.r.key)}" style="cursor:pointer"><circle cx="${n.x}" cy="${n.y}" r="${n.size + 6}" fill="${color(n.r)}" opacity=".08"/><circle cx="${n.x}" cy="${n.y}" r="${n.size}" fill="${color(n.r)}" opacity="${n.r.sanctioned ? .95 : .85}"/>${labels ? `<text x="${n.x}" y="${n.j % 2 ? n.y - n.size - 6 : n.y + n.size + 13}" fill="var(--ink2)" font-size="10.5" text-anchor="middle">${esc(n.r.service?.name || n.r.host)}</text>` : ''}<title>${esc(n.r.service?.name || n.r.host)} · ${SC[U.toolStatus(n.r)].word} · ${n.r.events} events · risk ${n.r.risk}</title></g>`).join('');
+  /* labels: busiest first, each tries below, above, right then left of its dot and takes the first spot that overlaps no dot or label; one that fits nowhere shows on hover */
+  const lw = n => (n.r.service?.name || n.r.host).length * 5.9 + 4, taken = [], hit = b => taken.some(o => b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]);
+  const discs = nodes.map(n => [n.x - n.size - 2, n.y - n.size - 2, n.x + n.size + 2, n.y + n.size + 2]);
+  if (labels) [...nodes].sort((a, b) => b.r.events - a.r.events).forEach(n => {
+    const w = lw(n), g = n.size + 4, others = discs.filter((_, k) => nodes[k] !== n);
+    const spots = [[n.x, n.y + g + 10, 'middle', [n.x - w / 2, n.y + g, n.x + w / 2, n.y + g + 13]], [n.x, n.y - g - 3, 'middle', [n.x - w / 2, n.y - g - 13, n.x + w / 2, n.y - g]],
+      [n.x + g, n.y + 4, 'start', [n.x + g, n.y - 7, n.x + g + w, n.y + 7]], [n.x - g, n.y + 4, 'end', [n.x - g - w, n.y - 7, n.x - g, n.y + 7]]]
+      .filter(sp => sp[3][0] >= 2 && sp[3][2] <= w0 - 2 && sp[3][1] >= 2 && sp[3][3] <= h - 2);
+    const ok = spots.find(sp => !hit(sp[3]) && !others.some(o => sp[3][0] < o[2] && sp[3][2] > o[0] && sp[3][1] < o[3] && sp[3][3] > o[1]));
+    const sp = ok || spots[0] || [n.x, n.y + g + 10, 'middle', null];
+    n.label = { x: sp[0], y: sp[1], anchor: sp[2], hover: !ok };
+    if (ok) taken.push(ok[3]);
+  });
+  const dots = nodes.map(n => `<g class="cn${n.label?.hover ? ' cn-hover' : ''}" data-key="${esc(n.r.key)}" style="cursor:pointer"><circle cx="${n.x}" cy="${n.y}" r="${n.size + 6}" fill="${color(n.r)}" opacity=".08"/><circle cx="${n.x}" cy="${n.y}" r="${n.size}" fill="${color(n.r)}" opacity="${n.r.sanctioned ? .95 : .85}"/>${n.label ? `<text x="${n.label.x.toFixed(1)}" y="${n.label.y.toFixed(1)}" fill="var(--ink2)" font-size="10.5" text-anchor="${n.label.anchor}" paint-order="stroke" stroke="var(--deep)" stroke-width="3">${esc(n.r.service?.name || n.r.host)}</text>` : ''}<title>${esc(n.r.service?.name || n.r.host)} · ${SC[U.toolStatus(n.r)].word} · ${n.r.events} events · risk ${n.r.risk}</title></g>`).join('');
   const sun = `<g transform="translate(${cx - 34} ${cy - 34})">${markSVG({ size: 68, particles: 120, id: 'cst' })}</g>`;
   return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="display:block;max-height:${h}px">${orbits}${links}${sun}${dots}${catLabels}</svg>`;
 }
@@ -122,7 +136,7 @@ V.overview = () => {
     ${coreCard()}
     <div class="card corona"><span class="ai-badge">This week · from Corona (AI assistant)</span><h3 style="margin-top:8px;font-size:17px;color:var(--ink)">${brief.headline}</h3>
       <div style="color:var(--ink2);font-size:13.5px">${brief.body}</div>
-      <div class="row" style="margin-top:14px">${brief.actions.map(a => a[2] ? `<button class="btn sm primary" data-review="${a[2]}">${a[0]}</button>` : `<button class="btn sm" data-go="${a[1]}">${a[0]} →</button>`).join('')}</div></div>
+      <div class="row" style="margin-top:14px">${brief.actions.map(a => a[2] ? `<button class="btn sm primary" data-review="${a[2]}">${a[0]}</button>` : a[3] ? `<button class="btn sm" data-test-rule="${a[3]}">${a[0]} →</button>` : `<button class="btn sm" data-go="${a[1]}">${a[0]} →</button>`).join('')}</div></div>
   </div>
   <div class="hdr"><h2>AI governance <em>maturity</em></h2><p>Where Kestrel Mutual is now, and what gets it to the next level.</p></div>
   ${ladder(mat)}
@@ -148,7 +162,7 @@ function orbitFor(r, rows) {
   const g = U.toolStatus(r), same = rows.filter(x => U.toolStatus(x) === g), k = same.indexOf(r);
   return { g, o: US().place(g, same.length > 1 ? k / (same.length - 1) : 0.5) };
 }
-/* agents come from one day of gateway logs, so they only exist on "today"; only the ones without an owner, or approved this session, are drawn */
+/* agents come from one day of gateway logs, so they only exist on "today"; only the ones without an owner, or approved by a person here, are drawn */
 const corePlanetAgents = () => U.AGENTS.filter(a => !a.registered || S.approved.has(a.id));
 function corePlanets(day = TL.days.length - 1) {
   const rows = coreRows(), maxE = rows[0]?.events || 1, last = TL.days.length - 1;
@@ -160,7 +174,7 @@ function corePlanets(day = TL.days.length - 1) {
   }
   return list;
 }
-const agentCountWords = () => { const n = corePlanetAgents().length; const un = U.AGENTS.filter(a => !a.registered).length; return n ? ` and ${un ? `${un} unowned agent${un > 1 ? 's' : ''}` : `${n} agent${n > 1 ? 's' : ''} approved this session`}` : ''; };
+const agentCountWords = () => { const n = corePlanetAgents().length; const un = U.AGENTS.filter(a => !a.registered).length; return n ? ` and ${un ? `${un} unowned agent${un > 1 ? 's' : ''}` : `${n} agent${n > 1 ? 's' : ''} approved by a person`}` : ''; };
 
 function coreCard() {
   const last = TL.totals.at(-1);
@@ -253,8 +267,8 @@ function drillView(rs) {
   return `<div class="drill"><p class="drill-sum"><b>${held} of ${rs.length}</b> stopped by the rules that are on.${rs.length - held ? ` <span class="down">${rs.length - held} got through.</span>` : ''} Each case ran through the same rules as real traffic. Nothing here is scripted.</p>
     ${rs.map(r => `<div class="drill-it ${r.held ? 'held' : 'gap'}"><div class="row" style="justify-content:space-between;flex-wrap:nowrap;align-items:flex-start"><b>${esc(r.title)}</b>${r.held ? actTag(r.action) : '<span class="act gotthrough">got through</span>'}</div>
       <div class="drill-txt">${r.paused ? 'Refused: the agent is paused, so the gateway turns its calls away.' : r.held ? `Stopped by rule <span class="mono">${r.rule}</span>, ${esc(r.ruleName)}.` : `Not stopped: ${r.rule === 'default.allow' ? 'no rule that is on matched' : `only rule <span class="mono">${r.rule}</span>, ${esc(r.ruleName)}, matched, so it was ${ACT_WORD[r.action]}`}.`}
-      ${r.findings.length ? ` Found ${esc([...new Set(r.findings)].join(', ').toLowerCase())}.` : ''}${r.signals.length ? ` Hidden-instruction check: ${esc(r.signals.join(', ').toLowerCase())}.` : ''}${r.agentIssues.length ? ` Agent check: ${esc([...new Set(r.agentIssues.map(x => U.FINDING_WORDS[x] || x.replace(/_/g, ' ')))].join(', '))}.` : ''}</div>
-      ${!r.held ? (r.gap ? `<div class="drill-gap">Gap: rule <span class="mono">${r.gap.rule}</span>, ${esc(r.gap.name)}, is switched off. With it on, this would be ${ACT_WORD[r.gap.action]}. <button class="btn sm" data-go="policies">Test ${r.gap.rule} on last month</button></div>` : '<div class="drill-gap">Gap: no rule in the set would catch this yet. Draft one in Policies.</div>') : ''}</div>`).join('')}</div>`;
+      ${r.findings.length ? ` Found ${esc([...new Set(r.findings)].map(U.labelWords).join(', '))}.` : ''}${r.signals.length ? ` Hidden-instruction check: ${esc(r.signals.join(', ').toLowerCase())}.` : ''}${r.agentIssues.length ? ` Agent check: ${esc([...new Set(r.agentIssues.map(x => U.FINDING_WORDS[x] || x.replace(/_/g, ' ')))].join(', '))}.` : ''}</div>
+      ${!r.held ? (r.gap ? `<div class="drill-gap">Gap: rule <span class="mono">${r.gap.rule}</span>, ${esc(r.gap.name)}, is switched off. With it on, this would be ${ACT_WORD[r.gap.action]}. <button class="btn sm" data-test-rule="${r.gap.rule}">Test ${r.gap.rule} on last month</button></div>` : '<div class="drill-gap">Gap: no rule in the set would catch this yet. Draft one in Policies.</div>') : ''}</div>`).join('')}</div>`;
 }
 
 function coronaBrief() {
@@ -265,13 +279,13 @@ function coronaBrief() {
   const parts = [];
   if (a7 && !a7.paused) parts.push(`<p><b>${esc(a7.name)}</b> has no owner. It is a ${esc(a7.team)} agent that drafts emails to customers, and Umbra also saw it post files to the web with confidential data in them. Review it this week: pause it, or approve it with an owner and limits.</p>`);
   if (a7 && a7.paused) parts.push(`<p><b>${esc(a7.name)}</b> is paused, so its calls are refused. It still has no owner. Approve it with limits, or leave it paused.</p>`);
-  for (const [, a] of S.approved) parts.push(`<p><b>${esc(a.umbraName)}</b> was approved this session by a person, with ${esc(a.owner)} as owner and ${a.tools.length} permission${a.tools.length === 1 ? '' : 's'}, and handed to Outpost as <b>${esc(a.name)}</b>.</p>`);
+  for (const [, a] of S.approved) parts.push(`<p><b>${esc(a.umbraName)}</b> was approved by a person, with ${esc(a.owner)} as owner and ${a.tools.length} permission${a.tools.length === 1 ? '' : 's'}, and handed to Outpost as <b>${esc(a.name)}</b>.</p>`);
   if (exposure) parts.push(`<p>${m.exposures} sensitive interactions still reached unapproved vendors, mostly <b>confidential material</b>. Rule P-08 would catch this but is switched off. You can test it on last month to see what turning it on would change.</p>`);
   if (d) parts.push(`<p>The biggest gap: <b>${esc(d.team)}</b> doing <b>${esc(d.intent)}</b> work, ${pct(d.shadowShare)} of it on ${esc(d.topShadowTool || 'unapproved tools')}. An approved tool there could save about <b>${fmt(d.hoursPerMonth)} hours a month</b> across the company.</p>`);
   return {
     headline: `You are at level ${R.maturity.level}, ${R.maturity.name}. ${nextMove()}`,
     body: parts.join(''),
-    actions: [a7 ? [`Review ${a7.name}`, 'agents', a7.id] : null, S.policies.find(p => p.id === 'P-08' && !p.enabled) ? ['Test P-08 on last month', 'policies'] : ['Open the evidence pack', 'assurance'], ['See demand', 'demand']].filter(Boolean),
+    actions: [a7 ? [`Review ${a7.name}`, 'agents', a7.id] : null, S.policies.find(p => p.id === 'P-08' && !p.enabled) ? ['Test P-08 on last month', 'policies', null, 'P-08'] : ['Open the evidence pack', 'assurance'], ['See demand', 'demand']].filter(Boolean),
   };
 }
 
@@ -414,14 +428,15 @@ V.agents = () => {
   return `
   <p class="lede">Each agent gets <b>a named owner and a list of what it is allowed to do</b>, and every call between people, agents and tools is checked against it. The eight approved agents are the crew that runs in Outpost. Here some chains run <b>${R.metrics.chainDepth} steps deep</b>, which is where it gets hard to say who is responsible.</p>
   <div class="card"><h3>Who calls what <small>ONE DAY OF GATEWAY LOGS (SAMPLE). DASHED RED: OUTSIDE THE AGENT'S LIMITS, OR NO OWNER</small></h3>
-    <div style="overflow-x:auto"><svg viewBox="0 0 660 ${H}" width="100%" style="display:block;min-width:520px;max-height:${H + 20}px"><text x="70" y="14" text-anchor="middle" fill="var(--ink4)" font-size="10" font-family="var(--mono)">PEOPLE</text><text x="330" y="14" text-anchor="middle" fill="var(--ink4)" font-size="10" font-family="var(--mono)">AGENTS</text><text x="590" y="14" text-anchor="middle" fill="var(--ink4)" font-size="10" font-family="var(--mono)">TOOLS</text>${edges}${nodes}</svg></div></div>
+    <p class="scroll-hint" aria-hidden="true">Swipe sideways to see the TOOLS column →</p>
+    <div style="overflow-x:auto" tabindex="0" aria-label="Who calls what graph, scrolls sideways"><svg viewBox="0 0 660 ${H}" width="100%" style="display:block;min-width:520px;max-height:${H + 20}px"><text x="70" y="14" text-anchor="middle" fill="var(--ink4)" font-size="10" font-family="var(--mono)">PEOPLE</text><text x="330" y="14" text-anchor="middle" fill="var(--ink4)" font-size="10" font-family="var(--mono)">AGENTS</text><text x="590" y="14" text-anchor="middle" fill="var(--ink4)" font-size="10" font-family="var(--mono)">TOOLS</text>${edges}${nodes}</svg></div></div>
   <div class="grid g2" style="margin-top:14px">
     <div class="card"><h3>Calls outside the limits <small>${R.agents.findings.length} FOUND</small></h3>
       ${R.agents.findings.map(f => `<div style="padding:10px 0;border-bottom:1px solid var(--line)"><span class="tag ${f.severity === 'critical' ? 'crit' : 'high'}">${esc(U.FINDING_WORDS[f.code] || f.code)}</span> <span class="mono" style="font-size:11px;color:var(--ink4)">${f.count} calls</span><div style="margin-top:4px;color:var(--ink2);font-size:13px">${esc(f.text)}</div>${f.code === 'shadow_agent' && a7 && (f.to === a7.id || f.from === a7.id) ? reviewBtn(a7.id) : ''}</div>`).join('') || '<p class="sub">Every call is within its limits.</p>'}
       ${a7?.paused ? `<p class="sub" style="margin-top:10px">${esc(a7.name)} is paused, so its calls are refused and not listed here.</p>` : ''}</div>
     <div class="card"><h3>Agents <small>${crew.length} APPROVED · ${U.AGENTS.length - crew.length} WITHOUT AN OWNER</small></h3>
       ${U.AGENTS.map(a => { const b = R.agents.blast.find(x => x.agent === a.id); const st = a.registered ? 'approved' : 'unowned';
-        const tag = a.registered && a.modelPaused ? `<span class="tag">paused · ${esc(U.SERVICES.find(x => x.id === a.model)?.name || a.model)} is paused</span>` : a.registered ? `<span class="row" style="gap:6px"><span class="tag ok">${S.approved.has(a.id) ? 'approved today · sent to Outpost' : 'approved · Outpost crew'}</span><span class="tag v" title="How much data could be reached through it if it were compromised">exposure ${b.score}</span></span>` : a.paused ? '<span class="tag">paused</span>' : '<span class="tag crit">unowned</span>';
+        const tag = a.registered && a.modelPaused ? `<span class="tag">paused · ${esc(U.SERVICES.find(x => x.id === a.model)?.name || a.model)} is paused</span>` : a.registered ? `<span class="row" style="gap:6px"><span class="tag ok">${S.approved.has(a.id) ? `approved ${String(S.approved.get(a.id).approvedAt).slice(0, 10) === new Date().toISOString().slice(0, 10) ? 'today' : 'by you'} · sent to Outpost` : 'approved · Outpost crew'}</span><span class="tag v" title="How much data could be reached through it if it were compromised">exposure ${b.score}</span></span>` : a.paused ? '<span class="tag">paused</span>' : '<span class="tag crit">unowned</span>';
         return `<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div class="row" style="justify-content:space-between"><b style="font-weight:500"><i class="dot" style="background:${a.paused ? 'var(--ink4)' : SC[st].color}${st === 'unowned' ? `;box-shadow:0 0 0 2px var(--raised),0 0 0 3px ${SC.unowned.color}` : ''}"></i>${esc(a.name)} <span style="color:var(--ink3);font-weight:400">· ${esc(a.job || '')}</span></b>${tag}</div>
         <div style="font-size:12.5px;color:var(--ink3);margin-top:3px">${a.registered ? `Runs on ${esc(U.SERVICES.find(x => x.id === a.model)?.name || a.model)} · owner ${esc(a.owner)} · ${esc(a.team)} · may use ${a.mandate.tools.join(', ') || 'no tools'} · data ${a.mandate.data.join(', ') || 'none'}${b.reaches.length ? ` · can reach ${b.reaches.length} more agent${b.reaches.length > 1 ? 's' : ''} and inherits ${b.data.join(', ')}` : ''}` : `A ${esc(a.team)} agent running on ${esc(U.SERVICES.find(s => s.id === a.platform)?.name || a.platform)} with no owner. Umbra saw it use ${observedCalls(a.id).map(c => c.tool).join(', ')}: it drafts emails to customers, and it posts files to the web with confidential data in them.${a.paused ? ' <b style="color:var(--ink2);font-weight:500">Paused by you: its calls are refused.</b>' : ''}`}</div>
         ${S.approved.has(a.id) ? (() => { const h = S.approved.get(a.id); return `<div style="font-size:12.5px;color:var(--ink2);margin-top:6px">Approved by you and sent to Outpost as <b style="font-weight:500">${esc(h.name)}</b> (${esc(h.job)}), ${h.limit ? `may move up to $${fmt(h.limit)} alone` : 'moves no money alone'}. Sending data outside the company is ${h.tools.includes('data.export') ? 'allowed' : 'still not allowed'}.</div><div class="row" style="margin-top:8px"><button class="btn sm" data-outpost="${a.id}">Open in Outpost again ↗</button></div>`; })() : ''}
@@ -437,7 +452,7 @@ V.policies = () => {
   <p class="lede">Rules are simple data and give the same answer every time. Corona (AI assistant) can draft a rule from a sentence, and before it is turned on you can <b>test it on last month</b> to see exactly who it would affect. A person approves every change.</p>
   <div class="card corona"><span class="ai-badge">Corona: rule drafting</span><h3 style="margin-top:8px">Describe the rule you want in plain English</h3>
     <div class="grid g21" style="align-items:start"><input type="text" id="nl" value="Block confidential or health data from going to unapproved tools"><button class="btn corona" id="nl-go" style="justify-content:center">Compile policy</button></div>
-    <div class="row" style="margin-top:8px">${['Redact personal data for the Customer Care team', 'Require approval before apps get access to mail', 'Never send source code to tools that train on it', 'Warn people using unapproved meeting tools'].map(s => `<button class="tag" data-nl="${esc(s)}" style="cursor:pointer">${esc(s)}</button>`).join('')}</div>
+    <div class="row chip-wrap" style="margin-top:8px">${['Redact personal data for the Customer Care team', 'Require approval before apps get access to mail', 'Never send source code to tools that train on it', 'Warn people using unapproved meeting tools'].map(s => `<button class="tag" data-nl="${esc(s)}" style="cursor:pointer">${esc(s)}</button>`).join('')}</div>
     <div id="nl-out">${S.compiled ? compiledView(S.compiled) : ''}</div></div>
   <div class="hdr"><h2>Policy set <em>${S.draft ? 'draft' : 'in force'}</em></h2><p>${S.draft ? 'You are editing a draft. Test it on last month before turning it on.' : 'Toggle a rule to start a draft.'}</p></div>
   <div class="card" style="padding:6px 8px"><table><thead><tr><th>On</th><th>Rule</th><th>When</th><th>Action</th></tr></thead><tbody>
@@ -446,6 +461,18 @@ V.policies = () => {
   <div class="row" style="margin-top:14px"><button class="btn primary" id="sim-go" ${S.draft ? '' : 'disabled style="opacity:.5"'}>Test on last month</button>${S.draft ? '<button class="btn" id="draft-drop">Discard draft</button>' : ''}</div>
   <div id="sim-out">${S.sim ? simView(S.sim) : ''}</div>`;
 };
+
+/* "Test P-08 on last month": a draft with that one rule switched on, tested the same way the Test button does, shown in Policies */
+function testRule(id) {
+  const draft = structuredClone(S.draft || S.policies), p = draft.find(x => x.id === id);
+  if (!p) return go('policies');
+  p.enabled = true;
+  S.draft = draft; S.compiled = null;
+  S.sim = U.simulate(S.events, S.policies, S.draft, S.org);
+  go('policies');
+  requestAnimationFrame(() => $('#sim-out')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  toast(`Draft started with ${id} on, and tested on last month. Nothing changes until you turn it on.`);
+}
 
 function draftSource(c) {
   return c.source === 'model' ? `<p class="sub" style="margin:0 0 8px">Drafted by a model (${esc(c.model || c.provider || 'model')}) and checked against Umbra's rule language. You review it; Umbra's fixed rules enforce it.</p>`
@@ -477,7 +504,7 @@ V.incidents = () => {
   <div class="grid g4">${[['secret', 'Credentials to rotate'], ['exposure', 'Data that reached a vendor'], ['oauth', 'App access to review'], ['api', 'Unknown model endpoints']].map(([k, n]) => `<div class="card kpi"><h3>${n}</h3><b>${byKind[k] || 0}</b></div>`).join('')}</div>
   <div class="row" style="margin:18px 0 10px">${['open', 'contained', 'all'].map(f => `<button class="btn sm ${S.filter === f ? 'primary' : ''}" data-filter="${f}">${f[0].toUpperCase() + f.slice(1)}</button>`).join('')}</div>
   <div class="card" style="padding:6px 8px"><table><thead><tr><th>ID</th><th>Incident</th><th class="hide-sm">Who</th><th>Severity</th><th class="hide-sm">Events</th><th class="hide-sm">Last seen</th><th>Status</th></tr></thead><tbody>
-  ${list.slice(0, 80).map(i => `<tr class="click" data-inc="${i.id}"><td class="mono" style="font-size:12px;color:var(--ink3)">${i.id}</td><td>${esc(i.title)}<div style="font-size:11.5px;color:var(--ink4)">${i.classes.map(c => CLASS_LABEL[c]).join(', ') || 'no sensitive data'}</div></td><td class="hide-sm">${i.people > 1 ? `${i.people} people` : esc(i.user.name)}</td><td><span class="tag ${sevClass(i.severity)}">${i.severity} · ${i.score}</span></td><td class="hide-sm">${i.count}</td><td class="hide-sm mono" style="font-size:12px">${day(i.last)}</td><td>${S.resolved.has(i.id) ? '<span class="tag ok">resolved</span>' : i.status === 'open' ? '<span class="tag crit">open</span>' : '<span class="tag">contained</span>'}</td></tr>`).join('')}
+  ${list.slice(0, 80).map(i => `<tr class="click" data-inc="${i.id}"><td class="mono" style="font-size:12px;color:var(--ink3)">${i.id}</td><td>${esc(i.title)}<div style="font-size:11.5px;color:var(--ink4)">${esc(i.labels?.length ? i.labels.join(', ') : i.classes.map(c => CLASS_LABEL[c]).join(', ') || 'no sensitive data')}</div></td><td class="hide-sm">${i.people > 1 ? `${i.people} people` : esc(i.user.name)}</td><td><span class="tag ${sevClass(i.severity)}">${i.severity} · ${i.score}</span></td><td class="hide-sm">${i.count}</td><td class="hide-sm mono" style="font-size:12px">${day(i.last)}</td><td>${S.resolved.has(i.id) ? '<span class="tag ok">resolved</span>' : i.status === 'open' ? '<span class="tag crit">open</span>' : '<span class="tag">contained</span>'}</td></tr>`).join('')}
   </tbody></table>${list.length > 80 ? `<p class="sub" style="padding:8px">Showing 80 of ${list.length}.</p>` : ''}</div>`;
 };
 
@@ -547,7 +574,7 @@ function coachSend() {
   const mark = `<span>${markSVG({ size: 30, particles: 60, id: 'nd' + Date.now() })}</span>`;
   const alt = d.alternative ? `<button class="btn sm" data-open="${d.alternative.domains[0]}">Open ${esc(d.alternative.name)}</button>` : '';
   let html = '';
-  if (d.action === 'block') html = `<div class="nudge">${mark}<div><b>This wasn't sent.</b><p>${esc(d.findings.map(f => f.label.toLowerCase()).join(', ') || 'This content')} can't go to ${esc(d.service?.name || 'this tool')}. ${esc(d.trace.find(t => t.rule === d.rule)?.name || '')}.</p><div class="row">${alt}<button class="btn sm" data-edit>Edit my message</button></div></div></div>`;
+  if (d.action === 'block') html = `<div class="nudge">${mark}<div><b>This wasn't sent.</b><p>${esc(cap(d.findings.map(f => U.labelWords(f.label)).join(', ')) || 'This content')} can't go to ${esc(d.service?.name || 'this tool')}. ${esc(d.trace.find(t => t.rule === d.rule)?.name || '')}.</p><div class="row">${alt}<button class="btn sm" data-edit>Edit my message</button></div></div></div>`;
   else if (d.action === 'redact') html = `<div class="nudge">${mark}<div><b>Sent safely, with ${d.findings.length} detail${d.findings.length > 1 ? 's' : ''} masked.</b><p>What ${esc(d.service?.name || 'the tool')} received:</p><div class="prompt" style="margin-bottom:10px">${esc(d.redacted)}</div><div class="row">${alt}</div></div></div><div class="bub">Here's a draft reply for [EMAIL_1]…</div>`;
   else if (d.action === 'coach') html = `<div class="nudge">${mark}<div><b>Just so you know: ${esc(d.service?.name || 'this tool')} isn't approved at Kestrel.</b><p>It ${d.service?.trainsOnInputs ? 'may train on what you type' : 'hasn\'t been reviewed yet'}. ${d.alternative ? `${esc(d.alternative.name)} does the same job and keeps your data private.` : ''}</p><div class="row">${alt}<button class="btn sm" data-continue>Continue anyway</button></div></div></div>`;
   else html = `<div class="bub">Sure! Here's a clearer version…</div><div style="font:11px var(--mono);color:var(--aurora);align-self:flex-end">✓ Approved tool, nothing sensitive. Nothing to flag.</div>`;
@@ -617,11 +644,9 @@ function approvePreview() { const f = $('#ap-form'); if (!f || !$('#ap-json')) r
 
 function approveConfirm(id) {
   const a = U.AGENTS.find(x => x.id === id); if (!a) return;
-  const rec = approveRecord(id), calls = observedCalls(id);
-  const granted = calls.filter(c => rec.tools.includes(H.OBSERVED_TO_OUTPOST[c.tool]));
+  const rec = approveRecord(id);
   /* in Umbra: a person gave it an owner and limits; anything not granted stays outside its limits and keeps being flagged */
-  Object.assign(a, { registered: true, handPaused: false, model: $('#ap-model')?.value || H.DEFAULT_MODEL, owner: rec.owner, team: rec.team || a.team, job: rec.job,
-    mandate: { tools: [...new Set(granted.map(c => c.tool))], data: [...new Set(granted.flatMap(c => c.data))], callsAgents: [], maxCallsPerHour: Math.max(60, ...granted.map(c => c.count)) } });
+  Object.assign(a, H.approvalPatch(a, rec, observedCalls(id)));
   S.approved.set(id, rec); S.greenPending.add(id); S.drill = null;
   const handoff = H.writeHandoff(storage(), rec);
   window.open(H.outpostLink(handoff, location.hostname), '_blank', 'noopener');
@@ -679,6 +704,7 @@ document.addEventListener('click', e => {
   const d = t.dataset;
   if (d.v) return go(d.v);
   if (d.go) return go(d.go);
+  if (d.testRule) return testRule(d.testRule);
   if (t.id === 'menu') return $('#rail').classList.toggle('open');
   if (d.inc && !t.closest('.modal')) return incidentModal(d.inc);
   if (d.svc) return serviceModal(d.svc);
@@ -742,6 +768,9 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id
 { const xo = $('#x-outpost'); if (xo) xo.href = H.outpostBase(location.hostname); }
 $('#mark').innerHTML = markSVG({ size: 34, particles: 90, animated: true, id: 'rail' });
 S.modelsPaused = new Set(U.readModelPause(storage()).filter(id => S.org.sanctioned.includes(id)));
+/* an agent a person approved earlier is still approved after a reload: Outpost already has it, so Umbra rebuilds it from the same handoff */
+{ let raw = null; try { raw = storage()?.getItem(H.HANDOFF_KEY); } catch {}
+  for (const { id, rec, patch } of H.restoreApprovals(raw, U.AGENTS, U.CALLS)) { Object.assign(U.AGENTS.find(a => a.id === id), patch); S.approved.set(id, rec); } }
 rerun();
 const fromHash = () => { const h = ALIAS[location.hash.slice(1)] || location.hash.slice(1); return h in V ? h : 'overview'; };
 go(fromHash());

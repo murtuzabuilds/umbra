@@ -190,7 +190,16 @@ function f(now) { const dt = still ? 0 : Math.min(.05, (now - last) / 1000); las
  ring(false);
  let hov = null, hd = 1e9; pl.forEach(q => { const d = Math.hypot(mx - q.px, my - q.py); if (d < 28 && d < hd) { hd = d; hov = q; } });
  const busy = p => !!p.mv || !!p.brk || p.tags.length > 0;
- const cw = narrow ? 6.1 : 6.7, boxes = []; [...pl].sort((a, b) => (b === hov) - (a === hov) || busy(b.p) - busy(a.p) || b.z - a.z).forEach(q => { const w = q.p.n.length * cw + 6, bx = q.px - w / 2, by = q.py + 4, tall = q.p.beam > .35 || busy(q.p) || q.p.pv > .5 ? 30 : 16; q.show = q === hov || busy(q.p) || (o.names !== 'events' && !(o.names === 'auto' && narrow)) && !boxes.some(b => bx < b[2] && bx + w > b[0] && by < b[3] && by + tall > b[1]); if (q.show) boxes.push([bx, by, bx + w, by + tall]); });
+ /* planet names: the hovered and busy planets first, then the biggest (busiest) tools. Each name tries below its dot, then above, keeping last frame's side when it still fits, and is hidden only when both would overlap */
+ const cw = narrow ? 6.1 : 6.7, boxes = [], dots = pl.map(q => { const r = (narrow ? 4.2 : 5.4) * (1 + .22 * q.z) * q.p.sz + 2; return [q.px - r, q.py - r, q.px + r, q.py + r]; });
+ const hit = (b, list) => list.some(o => b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]);
+ [...pl].sort((a, b) => (b === hov) - (a === hov) || busy(b.p) - busy(a.p) || b.p.sz - a.p.sz || b.z - a.z).forEach((q, qi) => { const s0 = (narrow ? 4.2 : 5.4) * (1 + .22 * q.z) * q.p.sz, w = q.p.n.length * cw + 6, bx = q.px - w / 2, tall = q.p.beam > .35 || busy(q.p) || q.p.pv > .5 ? 30 : 16;
+   const below = [bx, q.py + s0 + 2, bx + w, q.py + s0 + 2 + tall], above = [bx, q.py - s0 - 2 - tall, bx + w, q.py - s0 - 2], own = dots[pl.indexOf(q)], others = dots.filter(d => d !== own);
+   const fits = b => !hit(b, boxes) && !hit(b, others), must = q === hov || busy(q.p), allowed = o.names !== 'events' && !(o.names === 'auto' && narrow);
+   const order = busy(q.p) ? ['below'] : q.p.ls === 'above' ? ['above', 'below'] : ['below', 'above'];
+   const side = order.find(k => fits(k === 'below' ? below : above));
+   q.show = must || (allowed && !!side); q.ls = q.p.ls = must && !side ? 'below' : side || q.p.ls || 'below';
+   if (q.show) boxes.push(q.ls === 'below' ? below : above); });
  const drawPlanet = q => { const { p, px, py, z, c } = q, s = (narrow ? 4.2 : 5.4) * (1 + .22 * z) * p.sz, lit = hov === q, A = p.al * (1 - p.pv * .55);
    p.beam = Math.max(0, p.beam - dt * .55);
    if (p.beam > 0 || lit) { const b = (lit ? 1 : p.beam) * A; const lg = x.createLinearGradient(X, Y, px, py); lg.addColorStop(0, 'rgba(255,230,190,0)'); lg.addColorStop(.25, `rgba(255,230,190,${.5 * b})`); lg.addColorStop(1, rgba(lit ? c : CREAM, 1)); x.globalAlpha = b * .9; x.strokeStyle = lg; x.lineWidth = p.bl && !lit ? 1.8 : 1.2; x.beginPath(); x.moveTo(X + (px - X) * .18, Y + (py - Y) * .18); x.lineTo(px, py); x.stroke();
@@ -210,8 +219,8 @@ function f(now) { const dt = still ? 0 : Math.min(.05, (now - last) / 1000); las
    const sg = x.createRadialGradient(lx, ly, s * .1, px, py, s); sg.addColorStop(0, '#FFFFFF'); sg.addColorStop(.35, rgba(c, 1)); sg.addColorStop(1, '#0A0C13'); x.globalAlpha = A * flick * (.55 + .45 * (z + 1) / 2); x.fillStyle = sg; x.beginPath(); x.arc(px, py, s, 0, 6.283); x.fill();
    /* unowned: a dashed ring around the dot */
    if (p.dash > .02) { x.globalAlpha = A * p.dash * .9; x.strokeStyle = rgba(STATUS.unowned.rgb, 1); x.lineWidth = 1.2; x.setLineDash([2.5, 2.5]); x.lineDashOffset = -T * 6; x.beginPath(); x.arc(px, py, s + 4, 0, 6.283); x.stroke(); x.setLineDash([]); x.lineDashOffset = 0; }
-   if (q.show) { x.globalAlpha = p.al * (lit || busy(p) ? 1 : (.3 + .6 * (z + 1) / 2) * (1 - p.pv * .35)) * (risky && !lit ? flick : 1); x.font = `500 ${narrow ? 10 : 11}px ${MONO}`; x.textBaseline = 'middle'; x.textAlign = 'center'; x.fillStyle = lit ? '#FFFFFF' : '#D6D9E4'; const tw = x.measureText(p.n).width / 2, nx = Math.max(tw + 3, Math.min(W - tw - 3, px)); x.fillText(p.n, nx, py + s + 9);
-     if (lit || p.beam > .35 || busy(p) || p.pv > .5) { x.globalAlpha = p.al * (lit || busy(p) || p.pv > .5 ? 1 : p.beam); x.fillStyle = p.pv > .5 ? 'rgba(214,217,228,.75)' : rgba(c, 1); x.font = `${narrow ? 9 : 10}px ${MONO}`; x.fillText(p.pv > .5 ? 'paused' : p.mv ? (p.st === 'approved' ? 'approving' : 'moving') : SN[p.st], px, py + s + 21); } }
+   if (q.show) { x.globalAlpha = p.al * (lit || busy(p) ? 1 : (.3 + .6 * (z + 1) / 2) * (1 - p.pv * .35)) * (risky && !lit ? flick : 1); x.font = `500 ${narrow ? 10 : 11}px ${MONO}`; x.textBaseline = 'middle'; x.textAlign = 'center'; x.fillStyle = lit ? '#FFFFFF' : '#D6D9E4'; const tw = x.measureText(p.n).width / 2, nx = Math.max(tw + 3, Math.min(W - tw - 3, px)), up = q.ls === 'above'; x.fillText(p.n, nx, up ? py - s - 9 : py + s + 9);
+     if (lit || p.beam > .35 || busy(p) || p.pv > .5) { x.globalAlpha = p.al * (lit || busy(p) || p.pv > .5 ? 1 : p.beam); x.fillStyle = p.pv > .5 ? 'rgba(214,217,228,.75)' : rgba(c, 1); x.font = `${narrow ? 9 : 10}px ${MONO}`; x.fillText(p.pv > .5 ? 'paused' : p.mv ? (p.st === 'approved' ? 'approving' : 'moving') : SN[p.st], px, up ? py - s - 21 : py + s + 21); } }
    /* event label above the planet */
    const tg = p.tags[0]; if (tg && !p.brk) { const fa = Math.min(1, tg.t * 4, (tg.life - tg.t) * 1.5); x.globalAlpha = p.al * fa; x.font = `500 ${narrow ? 9.5 : 10.5}px ${MONO}`; x.textAlign = 'center'; x.textBaseline = 'bottom'; x.lineWidth = 3; x.strokeStyle = 'rgba(5,6,10,.9)'; const ty = py - s - 9; x.strokeText(tg.text, px, ty); x.fillStyle = rgba(tg.col, 1); x.fillText(tg.text, px, ty); }
    x.globalAlpha = 1; x.textAlign = 'left'; };

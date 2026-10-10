@@ -4,12 +4,13 @@
 // It never makes the enforcement decision. Everything it produces is compiled into
 // deterministic policy, simulated against real traffic, and approved by a person.
 //
-// This prototype ships Corona's four skills as local, deterministic stand-ins so it runs
-// offline and free. In production each one is a model call constrained to the same output
-// schema, and the schema is what keeps the model honest.
+// Rule drafting calls a real model through the Worker in worker/ (see drafter.js); compilePolicy
+// below is the rules-based fallback it uses when the model is off or unreachable. The other skills
+// here (endpoint recognition, incident summaries) are local, deterministic stand-ins so the demo
+// runs offline and free. In production each would be a model call held to the same output shape.
 
 import { ACTIONS } from './policy.js';
-import { CLASSES } from './detect.js';
+import { CLASSES, labelWords } from './detect.js';
 
 /* ------------------------------------------------------------------ */
 /* 1. Plain-language policy authoring                                  */
@@ -115,22 +116,53 @@ export { injectionSignals } from './detect.js';
 
 const fmtDate = ts => new Date(ts).toISOString().slice(0, 10);
 
+const ACTION_PAST = { block: 'blocked', redact: 'masked', require_approval: 'held for a person', coach: 'coached', allow: 'allowed' };
+const listWords = xs => xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`;
+
+/** What happened to the interactions in a case, in words that match its status. */
+function outcomeFor(incident, where, what) {
+  const n = incident.count, all = n === 1 ? 'The one interaction' : n === 2 ? 'Both interactions' : `All ${n} interactions`;
+  if (incident.leaked) return `${incident.leaked === n ? all : `${incident.leaked} of ${n} interactions`} reached ${where} with ${what}.`;
+  const acts = incident.actions;
+  if (incident.kind === 'oauth') return acts.includes('require_approval')
+    ? `${n === 1 ? 'The request is' : `All ${n} requests are`} held until a person reviews them.`
+    : `The requests did not ask for mail, file or calendar access, so they went through with a note to the person.`;
+  if (incident.kind === 'api') {
+    if (acts.includes('block')) return `${n === 1 ? 'The one call was' : `All ${n} calls were`} blocked, so no data reached it.`;
+    if (acts.includes('redact')) return `Sensitive details were masked in ${n === 1 ? 'the one call' : `all ${n} calls`} before they reached ${where}${incident.sanctioned ? ', an approved model API' : ', but the service still sends work to a model API that is not approved'}.`;
+    return `None of the ${n} calls carried sensitive data, but each one went to ${where}, a model API that is not approved, so the case stays open.`;
+  }
+  if (acts.every(a => ['block', 'redact', 'require_approval'].includes(a))) return `${all} ${n === 1 ? 'was' : 'were'} stopped by policy (${listWords(acts.map(a => ACTION_PAST[a]))}).`;
+  if (!incident.classes.length) return `None carried sensitive data. Each time, the person using it was coached toward an approved tool.`;
+  return `${all} ${n === 1 ? 'was' : 'were'} handled by policy (${listWords(acts.map(a => ACTION_PAST[a]))}).`;
+}
+
 export function narrate(incident) {
-  const who = `${incident.user.name} (${incident.user.team})`;
+  const who = incident.people > 1 ? `${incident.people} people, including ${incident.user.name} (${incident.user.team}),` : `${incident.user.name} (${incident.user.team})`;
+  const first = incident.user.name.split(' ')[0];
   const where = incident.service?.name || incident.host;
-  const what = incident.classes.length ? incident.classes.map(c => CLASSES[c].toLowerCase()).join(', ') : 'no sensitive data';
+  const labels = (incident.labels || []).map(labelWords);
+  const classWords = incident.classes.map(c => CLASSES[c].toLowerCase());
+  const what = labels.length ? listWords(labels) : classWords.length ? listWords(classWords) : 'no sensitive data';
+  const involving = labels.length ? `${what} (${listWords(classWords)})` : what;
   const span = incident.first === incident.last ? `on ${fmtDate(incident.first)}` : `between ${fmtDate(incident.first)} and ${fmtDate(incident.last)}`;
-  const outcome = incident.leaked
-    ? `${incident.leaked} of ${incident.count} interactions reached ${where} with ${what}.`
-    : `All ${incident.count} interactions were contained by policy (${incident.actions.join(', ')}).`;
   const service = String(incident.user.id).startsWith('svc-');
+  const owners = `For the ${incident.user.team} team, owners of ${incident.user.name}: this service sends data to ${where}`;
   return {
-    analyst: `${who} used ${where} ${incident.count} times ${span}, involving ${what}. ${outcome} ${incident.recommendation}`,
+    analyst: `${incident.kind === 'oauth' ? `${where} asked ${who} for access to company data ${incident.count} time${incident.count === 1 ? '' : 's'} ${span}.` : `${who} used ${where} ${incident.count} time${incident.count === 1 ? '' : 's'} ${span}, involving ${involving}.`} ${outcomeFor(incident, where, what)} ${incident.recommendation}`,
     employee: service
-      ? `For the ${incident.user.team} team, owners of ${incident.user.name}: this service sends data to ${where}, which is not a registered model endpoint. Register it in the catalog or switch the call to an approved model API, and Umbra will stop intervening.`
+      ? (!incident.service
+        ? `${owners}, which is not in the catalog. Register it or switch the call to an approved model API, and Umbra will stop blocking it.`
+        : incident.sanctioned
+        ? `${owners}, an approved model API. Sensitive details are masked before each call. Nothing to do unless the service should not be sending that data at all.`
+        : `${owners}, which is in the catalog but not approved. Switch the call to ${incident.alternative || 'an approved model API'}, or ask for ${where} to be reviewed.`)
+      : incident.kind === 'oauth'
+      ? `Hi ${first}, ${where} asked to connect to your company account. ${incident.actions.includes('require_approval') ? 'Security is reviewing the request, so there is nothing for you to do.' : `It is not approved yet, so a reviewer will look at it. ${incident.alternative ? `${incident.alternative} is the approved option.` : ''}`}`.trim()
       : incident.leaked
-      ? `Hi ${incident.user.name.split(' ')[0]}, some of what you shared with ${where} included ${what}. No trouble, it happens. Next time, ${incident.service ? 'try the approved tool, which keeps data private' : 'use an approved tool'}. We have asked the vendor to delete it.`
-      : `Hi ${incident.user.name.split(' ')[0]}, Umbra quietly protected ${incident.count} of your AI requests this week. Nothing for you to do.`,
+      ? `Hi ${first}, some of what you shared with ${where} included ${what}. No trouble, it happens. Next time, ${incident.alternative ? `try ${incident.alternative}, which keeps data private` : 'use an approved tool'}. We have asked the vendor to delete it.`
+      : !incident.classes.length
+      ? `Hi ${first}, ${where} is not approved yet, so when you use it Umbra points you to ${incident.alternative || 'an approved tool'}. Nothing went wrong. Your use helps make the case for an approved tool.`
+      : `Hi ${first}, Umbra quietly protected ${incident.count} of your AI requests this week. Nothing for you to do.`,
   };
 }
 

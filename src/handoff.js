@@ -195,3 +195,43 @@ export function writeHandoff(storage, agent) {
   try { storage?.setItem(HANDOFF_KEY, JSON.stringify(next)); } catch {}
   return next;
 }
+
+/** The handoff id Umbra gives an agent: `umb-` plus its own id without the `ag-` prefix. */
+export const handoffIdFor = agentId => `umb-${slug(agentId).replace(/^ag-/, '')}`;
+
+/**
+ * What Umbra's own record of an agent becomes once a person approved it: owned, on an approved model,
+ * and limited to the observed calls the granted Outpost permissions cover. Anything not granted stays
+ * outside its limits and keeps being flagged.
+ */
+export function approvalPatch(agent, rec, calls = []) {
+  const tools = cleanTools(rec?.tools);
+  const granted = (Array.isArray(calls) ? calls : []).filter(c => c && (c.to === agent.id || c.from === agent.id) && tools.includes(OBSERVED_TO_OUTPOST[c.tool]));
+  const model = Object.keys(AGENT_MODELS).find(k => k === rec?.model || AGENT_MODELS[k] === rec?.model) || DEFAULT_MODEL;
+  return {
+    registered: true, handPaused: false, model,
+    owner: clip(rec?.owner, CAPS.owner), team: clip(rec?.team, CAPS.team) || agent.team, job: clip(rec?.job, CAPS.job) || agent.job,
+    mandate: { tools: [...new Set(granted.map(c => c.tool))], data: [...new Set(granted.flatMap(c => Array.isArray(c.data) ? c.data : []))], callsAgents: [], maxCallsPerHour: Math.max(60, ...granted.map(c => Number(c.count) || 0)) },
+  };
+}
+
+/**
+ * After a reload: rebuild the approvals a person made from the stored handoff, so Umbra and Outpost agree.
+ * Only records Umbra wrote, with an owner, for an agent that is unowned in the sample, count. Junk is skipped.
+ * Returns [{ id, rec, patch }]: the agent id, the cleaned handoff record and the patch for the agent.
+ */
+export function restoreApprovals(raw, agents = [], calls = []) {
+  const out = [];
+  for (const r of parseHandoff(raw).agents) {
+    try {
+      if (r.source !== 'umbra' || !clip(r.owner, CAPS.owner)) continue;
+      const a = (Array.isArray(agents) ? agents : []).find(x => x && !x.registered && handoffIdFor(x.id) === r.id);
+      if (!a || out.some(o => o.id === a.id)) continue;
+      const at = Date.parse(r.approvedAt), model = Object.keys(AGENT_MODELS).find(k => k === r.model || AGENT_MODELS[k] === r.model) || DEFAULT_MODEL;
+      const rec = buildAgent({ agent: { id: a.id, name: a.name }, name: r.name, job: r.job, owner: r.owner, team: r.team, tools: r.tools, limit: r.limit,
+        approvedAt: Number.isNaN(at) ? new Date() : new Date(at), model, rules: Array.isArray(r.rules) ? r.rules.filter(x => typeof x === 'string') : undefined });
+      out.push({ id: a.id, rec, patch: approvalPatch(a, rec, calls) });
+    } catch {}
+  }
+  return out;
+}

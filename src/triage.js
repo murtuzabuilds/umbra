@@ -2,6 +2,8 @@
 // Events are grouped by who, where and what. Anything already contained by policy is closed
 // automatically with its evidence attached, so analysts only see residual risk.
 
+import { CLASSES } from './detect.js';
+
 const CLASS_WEIGHT = { SECRET: 45, PHI: 40, FIN: 28, PII: 22, IP: 26, CONF: 18 };
 const DAY = 864e5;
 
@@ -19,7 +21,11 @@ function recommend(key, ds) {
   const d = ds[0];
   if (d.classes.includes('SECRET')) return 'Rotate the credential and check the repo it came from. The send was blocked, but the secret is in circulation.';
   if (d.event.channel === 'oauth') return `Review the ${d.service?.name || d.event.host} connection request and its scopes, then approve or deny.`;
-  if (d.event.channel === 'api') return 'Register or remove this model endpoint in the pricing service. Unknown endpoints get no data.';
+  if (d.event.channel === 'api') {
+    if (!d.service) return 'Register or remove this model endpoint in the calling service. Unknown endpoints get no data.';
+    if (d.sanctioned) return `${d.service.name} is approved, and rules ${d.action === 'redact' ? 'mask sensitive details before each call' : 'check each call'}. Confirm this service should send this kind of data to it, then close the case.`;
+    return `${d.service.name} is in the catalog but not approved. Move this service to ${d.alternative?.name || 'an approved model API'}, or ask for ${d.service.name} to be reviewed.`;
+  }
   if (ds.some(exposed)) return `Sensitive data reached ${d.service?.name || d.event.host}. Ask the vendor for deletion and coach the user toward ${d.alternative?.name || 'an approved tool'}.`;
   if (d.action === 'coach') return `Repeated use of an unapproved tool. Evaluate ${d.service?.name} for approval, or promote ${d.alternative?.name || 'the approved option'} to this team.`;
   return 'Contained by policy. No action needed.';
@@ -31,7 +37,12 @@ function titleFor(kind, ds, leaked) {
   if (kind === 'secret') return `Credential sent toward ${where}`;
   if (kind === 'exposure') return `${top ? top.label : 'Sensitive data'} reached ${where}`;
   if (kind === 'oauth') return `${where} requests access to company data`;
-  if (kind === 'api') return `Service calling ${d.service ? where : 'unknown model endpoint ' + where}`;
+  if (kind === 'api') {
+    if (!d.service) return `Service calling unknown model endpoint ${where}`;
+    const cls = [...new Set(ds.flatMap(x => x.classes))].sort((a, b) => (CLASS_WEIGHT[b] || 0) - (CLASS_WEIGHT[a] || 0))[0];
+    const status = d.sanctioned ? 'approved' : 'unapproved';
+    return cls ? `Service sending ${CLASSES[cls].toLowerCase()} to ${status} ${where}` : `Service calling ${status} ${where}, no sensitive data`;
+  }
   if (d.action === 'coach') return `Growing use of unapproved ${where}`;
   return `${top ? top.label : 'AI use'} ${d.action === 'block' ? 'blocked at' : d.action === 'redact' ? 'redacted for' : 'contained at'} ${where}`;
 }
@@ -77,6 +88,9 @@ export function triage(decisions, events, { windowDays = 7 } = {}) {
       host: d.event.host,
       channel: d.event.channel,
       classes: [...new Set(ds.flatMap(x => x.classes))],
+      labels: [...new Set(ds.flatMap(x => x.findings.map(f => f.label)))],
+      sanctioned: !!d.sanctioned,
+      alternative: d.alternative?.name || null,
       count: ds.length,
       leaked,
       actions: [...new Set(ds.map(x => x.action))],

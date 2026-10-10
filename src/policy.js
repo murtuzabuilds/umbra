@@ -3,7 +3,7 @@
 // No model sits on the enforcement path, which is what makes a decision auditable.
 
 import { identify, serviceRisk, SERVICES } from './catalog.js';
-import { detect, redact, classesOf, injectionSignals } from './detect.js';
+import { detect, redact, classesOf, injectionSignals, labelWords } from './detect.js';
 
 export const ACTIONS = ['allow', 'coach', 'redact', 'require_approval', 'block'];
 const RANK = Object.fromEntries(ACTIONS.map((a, i) => [a, i]));
@@ -80,7 +80,7 @@ export function evaluate(event, policies, org) {
 export function explain(d) {
   const lines = [`Decision: ${d.action.replace('_', ' ')} (rule ${d.rule}).`];
   lines.push(`Service: ${d.service ? `${d.service.name}, ${d.sanctioned ? 'approved' : 'not approved'}, risk ${d.risk}` : `unrecognised AI endpoint, risk ${d.risk}`}.`);
-  if (d.findings.length) lines.push(`Found: ${d.findings.map(f => f.label.toLowerCase()).join(', ')}.`);
+  if (d.findings.length) lines.push(`Found: ${d.findings.map(f => labelWords(f.label)).join(', ')}.`);
   if (d.alternative) lines.push(`Approved alternative: ${d.alternative.name}.`);
   return lines.join(' ');
 }

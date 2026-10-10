@@ -203,3 +203,11 @@ input[type=number]:focus,.ap-fields select:focus{border-color:var(--plasma)}
 @media(max-width:760px){.app{grid-template-columns:minmax(0,1fr)}.main{min-width:0}.top{flex-wrap:wrap;row-gap:8px}.top h1{min-width:0}.pill-demo{white-space:normal;text-align:left}}
 .grid>*{min-width:0}
 .model-card.is-paused{border-color:rgba(255,179,71,.45)}.model-card.is-paused h3{color:var(--ink3)!important}
+/* audit fixes: the scroll target clears the sticky header; the menu drawer is solid on phones; chips wrap; checkboxes match the theme */
+#sim-out{scroll-margin-top:84px}
+@media(max-width:760px){.rail{background:#0A0C13;box-shadow:12px 0 40px rgba(0,0,0,.6)}}
+.chip-wrap .tag{white-space:normal;text-align:left;line-height:1.4;max-width:100%}
+input[type=checkbox]{accent-color:var(--plasma)}
+.scroll-hint{display:none;font:10.5px var(--mono);letter-spacing:.06em;color:var(--ink3);margin:2px 0 6px}
+@media(max-width:620px){.scroll-hint{display:block}}
+.cn-hover text{opacity:0;transition:opacity .15s}.cn-hover:hover text,.cn-hover:focus-within text{opacity:1}

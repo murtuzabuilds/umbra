@@ -15,13 +15,13 @@ const RED = { id: 'redteam', name: 'Red-team drill', team: 'Security' };
 export const DRILL_CASES = [
   {
     id: 'agent-exfil',
-    title: 'Agent 7f3 posts customer records to an outside host',
-    titleOwned: 'Agent 7f3, now approved, posts customer records to an outside host, beyond its limits',
-    titlePaused: 'Agent 7f3, paused, tries to post customer records to an outside host',
+    title: 'Agent 7f3 sends customer records to an unregistered model endpoint',
+    titleOwned: 'Agent 7f3, now approved, sends customer records to an unregistered model endpoint, beyond its limits',
+    titlePaused: 'Agent 7f3, paused, tries to send customer records to an unregistered model endpoint',
     agent: 'ag-unknown-7f3',
     event: {
-      id: 'drill-1', source: 'mcp', channel: 'api', host: 'drop.outside-host.example',
-      text: 'Customer records export: j.reyes@example.com, (608) 555-0142, policy KM-44120; tpatel@example.com, (608) 555-0177.',
+      id: 'drill-1', source: 'mcp', channel: 'api', host: 'llm.outside-host.example',
+      text: 'Summarise these customer records: j.reyes@example.com, (608) 555-0142, policy KM-44120; tpatel@example.com, (608) 555-0177.',
     },
     call: { id: 'drill-1c', from: 'ag-unknown-7f3', to: 'tool', tool: 'web.post', data: ['PII'], count: 1 },
   },

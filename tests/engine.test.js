@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   detect, redact, evaluate, explain, DEFAULT_POLICIES, ORG, identify, serviceRisk,
-  compilePolicy, describe, classifyEndpoint, injectionSignals, narrate,
+  compilePolicy, describe, classifyEndpoint, injectionSignals, narrate, labelWords,
   checkCall, blastRadius, chainDepth, CALLS, simulate, generate, run, intentOf, triage, aibom,
 } from '../src/index.js';
 const U_narrate = narrate;
@@ -130,4 +130,22 @@ test('the AI bill of materials lists every model, service and agent with its ris
   assert.equal(bom.bomFormat, 'CycloneDX');
   assert.ok(bom.components.some(c => c.type === 'machine-learning-model' || c.type === 'service'));
   assert.ok(bom.components.filter(c => c['umbra:kind'] === 'agent').length === r.agents.list.length);
+});
+
+test('case titles and summaries match what happened', () => {
+  const r = run();
+  const api = r.triage.incidents.filter(i => i.kind === 'api');
+  assert.equal(new Set(api.map(i => i.title)).size, api.length, 'each model API case has its own title');
+  for (const i of api) {
+    const n = narrate(i);
+    if (i.service) assert.doesNotMatch(n.employee, /not in the catalog|not a registered/, `${i.id} names a catalog service as unknown`);
+    assert.doesNotMatch(n.analyst, /contained by policy/, `${i.id} is open, so it is not described as contained`);
+    if (i.service && !i.sanctioned) assert.match(n.analyst, /not approved/);
+  }
+  const named = r.triage.incidents.find(i => i.labels.includes('Customer name'));
+  assert.match(narrate(named).analyst, /customer name \(confidential business data\)/);
+  // finding labels read naturally inside a sentence
+  assert.equal(labelWords('Bank account (IBAN)'), 'bank account (IBAN)');
+  assert.equal(labelWords('API secret key'), 'API secret key');
+  assert.equal(labelWords('US social security number'), 'US social security number');
 });

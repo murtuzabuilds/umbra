@@ -40,7 +40,7 @@ const ssnOk = m => {
 const PATTERNS = [
   ['email', 'PII', /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, null, 'Email address'],
   ['phone', 'PII', /(?<!\d)(?:\+1[ .-]?)?\(?\d{3}\)?[ .-]\d{3}[ .-]\d{4}(?!\d)/g, null, 'Phone number'],
-  ['ssn', 'PII', /\b\d{3}-\d{2}-\d{4}\b/g, ssnOk, 'US Social Security number'],
+  ['ssn', 'PII', /\b\d{3}-\d{2}-\d{4}\b/g, ssnOk, 'US social security number'],
   ['card', 'FIN', /\b(?:\d[ -]?){13,19}\b/g, m => luhn(m.replace(/\D/g, '')) && m.replace(/\D/g, '').length >= 13, 'Payment card number'],
   ['iban', 'FIN', /\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){3,7}(?: ?[A-Z0-9]{1,3})?\b/g, ibanOk, 'Bank account (IBAN)'],
   ['aws_key', 'SECRET', /\bAKIA[0-9A-Z]{16}\b/g, null, 'Cloud access key'],
@@ -107,6 +107,9 @@ export function redact(text, findings) {
   }
   return out + t.slice(i);
 }
+
+/** A finding label inside a sentence: "Bank account (IBAN)" reads "bank account (IBAN)", acronyms like "API secret key" stay as they are. */
+export const labelWords = label => String(label).replace(/^[A-Z](?=[a-z])/, c => c.toLowerCase());
 
 export const classesOf = findings => [...new Set(findings.map(f => f.class))];
 

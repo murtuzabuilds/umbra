@@ -15,6 +15,7 @@
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--void);color:var(--ink);font:17px/1.65 var(--display);-webkit-font-smoothing:antialiased}
 a{color:var(--corona)}::selection{background:var(--plasma);color:#fff}
 .wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+section[id]{scroll-margin-top:72px}
 nav.top{position:fixed;inset:0 0 auto;z-index:10;display:flex;align-items:center;gap:18px;padding:16px 32px;background:linear-gradient(180deg,rgba(5,6,10,.9),rgba(5,6,10,0));}
 nav.top b{letter-spacing:.34em;font-weight:600;font-size:14px}
 nav.top .sp{flex:1}nav.top a{font:12px var(--mono);letter-spacing:.08em;color:var(--ink2);text-decoration:none}
@@ -154,7 +155,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 <section id="product"><div class="wrap">
   <div class="label reveal">05 &nbsp;The product</div>
   <h2 class="reveal">A console for <em>the whole picture.</em></h2>
-  <p class="big reveal">Everything below works in the interactive demo (sample data), which runs on a tested engine (42 tests). The demo company is Kestrel Mutual, a made-up insurer with 2,400 staff and 30 days of generated activity.</p>
+  <p class="big reveal">Everything below works in the interactive demo (sample data), which runs on a tested engine (64 tests). The demo company is Kestrel Mutual, a made-up insurer with 2,400 staff and 30 days of generated activity.</p>
   <div>
     <div class="feature reveal"><div class="txt"><span class="tag">Overview</span><h3>How much of your AI use <em>you can actually see</em></h3><p>The Overview starts with the share of AI activity Umbra can see and classify. Next to it are the share of work on approved tools, how much sensitive data was contained, how many incidents are open, and a short weekly summary from Corona (AI assistant) with the most useful next steps. In the middle is Umbra at the centre: every AI tool at Kestrel Mutual on orbit, and each ring around a tool is a control that applies to it. Approved tools sit inside all six rings, unapproved ones further out, high-risk ones near the edge.</p></div><div class="shot"><img src="docs/totality.webp" alt="Umbra Overview with Umbra at the centre" loading="lazy"></div></div>
     <div class="feature reveal"><div class="txt"><span class="tag">AI map</span><h3>Every AI service <em>on one map</em></h3><p>Distance from the centre shows risk, size shows usage, and colour shows whether it is approved. Risk is computed from facts a buyer can verify: whether the vendor trains on inputs, how long it keeps them, which attestations it holds and where it processes data. Corona can also recognise AI services that are not in the catalog, just from the shape of the traffic.</p></div><div class="shot"><img src="docs/constellation.webp" alt="AI map of every service in use" loading="lazy"></div></div>

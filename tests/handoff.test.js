@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   OUTPOST_TOOLS, OUTPOST_URL, OUTPOST_LOCAL_URL, HANDOFF_KEY, MAX_AGENTS, RISKY,
   buildAgent, cleanTools, suggestTools, mergeHandoff, parseHandoff, encodeDock, decodeDock,
-  outpostBase, outpostLink, writeHandoff, slug,
+  outpostBase, outpostLink, writeHandoff, slug, restoreApprovals, approvalPatch, handoffIdFor,
 } from '../src/handoff.js';
 import { AGENTS, CALLS } from '../src/agents.js';
 
@@ -109,4 +109,31 @@ test('writeHandoff writes the fixed key and survives a broken storage', () => {
   const broken = { getItem() { throw new Error('blocked'); }, setItem() { throw new Error('blocked'); } };
   assert.equal(writeHandoff(broken, make()).agents.length, 1);
   assert.equal(slug('  Unregistered agent 7f3 '), 'unregistered-agent-7f3');
+});
+
+test('after a reload, an approval is rebuilt from the stored handoff, and junk is ignored', () => {
+  const rec = make({ tools: ['email.send', 'crm.read'], model: 'vega-api', owner: 'Gabe Lopez', team: 'Marketing', job: 'Drafts emails to customers' });
+  assert.equal(rec.id, handoffIdFor(shadow.id));
+  const raw = JSON.stringify(mergeHandoff(null, rec));
+  const [r, ...rest] = restoreApprovals(raw, AGENTS, CALLS);
+  assert.equal(rest.length, 0);
+  assert.equal(r.id, shadow.id);
+  assert.deepEqual(r.rec, rec, 'the record survives the round trip unchanged');
+  assert.equal(r.patch.registered, true);
+  assert.equal(r.patch.owner, 'Gabe Lopez'); assert.equal(r.patch.team, 'Marketing'); assert.equal(r.patch.job, 'Drafts emails to customers');
+  assert.equal(r.patch.model, 'vega-api', 'the model name maps back to its catalog id');
+  // granted Outpost permissions map back to the observed calls they cover; web.post (data.export) was not granted
+  assert.deepEqual([...r.patch.mandate.tools].sort(), ['crm.read', 'mail.draft']);
+  assert.ok(!r.patch.mandate.tools.includes('web.post'));
+  // the same patch as a fresh approval makes
+  assert.deepEqual(r.patch, approvalPatch(shadow, rec, CALLS.filter(c => c.to === shadow.id || c.from === shadow.id)));
+  // tolerant of anything in storage
+  for (const junk of [null, '', 'not json', '{"v":2,"agents":[]}', '{"v":1,"agents":"x"}', JSON.stringify({ v: 1, agents: [{ id: rec.id }] }),
+    JSON.stringify({ v: 1, agents: [{ ...rec, owner: '' }] }), JSON.stringify({ v: 1, agents: [{ ...rec, source: 'other' }] }), JSON.stringify({ v: 1, agents: [{ ...rec, id: 'umb-nobody' }] })])
+    assert.deepEqual(restoreApprovals(junk, AGENTS, CALLS), [], String(junk));
+  // odd field values are cleaned, not trusted
+  const [odd] = restoreApprovals(JSON.stringify({ v: 1, agents: [{ ...rec, tools: ['shell.exec', 'email.send'], limit: 'lots', approvedAt: 'never', model: 'gpt-x', rules: [1, 'ok'] }] }), AGENTS, CALLS);
+  assert.deepEqual(odd.rec.tools, ['email.send']); assert.equal(odd.rec.limit, 0); assert.equal(odd.patch.model, 'aster'); assert.deepEqual(odd.rec.rules, ['ok']);
+  // an agent that is already owned in the sample is never touched
+  assert.deepEqual(restoreApprovals(raw, AGENTS.map(a => ({ ...a, registered: true })), CALLS), []);
 });
