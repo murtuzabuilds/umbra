@@ -119,3 +119,29 @@ test('CardRight: /category end to end, with limits and no key in the answer', as
   const down = await handle(req('/category', { method: 'POST', body: { merchant: 'Golden Wok' }, ip: 'cr3' }), env, async () => new Response('{"error":{"message":"bad key test-q"}}', { status: 401 }));
   const t = await down.text(); assert.equal(down.status, 502); assert.ok(!t.includes('test-q') && !t.includes('test-g'));
 });
+
+/* ---------- Conatus's endpoint on the same Worker ---------- */
+import { parsePlan, buildPlanMessages, CN_DOMAINS } from '../worker/worker.js';
+const goodPlan = { domain: 'career', milestones: ['Pick 10 target AI PM roles', 'Publish one AI case study', 'Hold 15 conversations with AI PMs', 'Land two final rounds'], weekly: ['Ship one visible piece', 'Talk to two AI PMs', 'Apply to three roles'], habit: 'Thirty minutes on the case study', care: false, careNote: '' };
+
+test('Conatus: only a plan of exactly the right shape gets out', () => {
+  assert.deepEqual(parsePlan(JSON.stringify(goodPlan)).plan, goodPlan);
+  assert.equal(parsePlan(JSON.stringify({ ...goodPlan, milestones: goodPlan.milestones.slice(0, 3) })).plan, null);
+  assert.equal(parsePlan(JSON.stringify({ ...goodPlan, habit: 'x'.repeat(90) })).plan, null);
+  assert.equal(parsePlan(JSON.stringify({ ...goodPlan, weekly: ['a', 'b', 'c'] })).plan, null);
+  assert.equal(parsePlan(JSON.stringify({ ...goodPlan, milestones: ['<img src=x>', ...goodPlan.milestones.slice(1)] })).plan, null);
+  assert.equal(parsePlan(JSON.stringify({ ...goodPlan, domain: 'hacking' })).plan.domain, 'general');
+  assert.equal(parsePlan('not json').plan, null);
+  assert.equal(parsePlan('{"crisis":true}').crisis, true);
+  assert.equal(parsePlan(JSON.stringify({ ...goodPlan, care: true, careNote: 'Involve your doctor before changing your diet.' })).plan.care, true);
+  for (const d of CN_DOMAINS) assert.ok(buildPlanMessages('x', '', 90).system.includes(d));
+});
+
+test('Conatus: /plan end to end, with input limits and no key in the answer', async () => {
+  const ok = await handle(req('/plan', { method: 'POST', body: { intention: 'Become an AI PM by May', why: 'I love building', days: 200 }, ip: 'cn1' }), env, fakeModel(JSON.stringify(goodPlan)));
+  const j = await ok.json(); assert.equal(ok.status, 200); assert.equal(j.plan.milestones.length, 4);
+  for (const bad of [{ intention: 'x', days: 90 }, { intention: 'Run a 5k', days: 2 }, { intention: 'y'.repeat(201), days: 90 }])
+    assert.equal((await handle(req('/plan', { method: 'POST', body: bad, ip: 'cn2' }), env, fakeModel('{}'))).status, 400);
+  const down = await handle(req('/plan', { method: 'POST', body: { intention: 'Run a 5k', days: 60 }, ip: 'cn3' }), env, async () => new Response('{"error":{"message":"bad key test-q"}}', { status: 401 }));
+  const t = await down.text(); assert.equal(down.status, 502); assert.ok(!t.includes('test-q') && !t.includes('test-g'));
+});
