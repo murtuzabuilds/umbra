@@ -122,7 +122,8 @@ export function buildPlanMessages(intention, why, days) {
     'Write: 4 milestones (each a concrete, checkable outcome, specific to this intention, max 80 characters), 3 weekly actions (repeatable every week, max 80 characters) and 1 daily keystone habit (small enough to do on a bad day, max 80 characters).',
     `Pick the domain from: ${CN_DOMAINS.join(', ')}.`,
     'Safety: if the intention involves health risk (rapid or extreme weight loss, fasting, extreme training, medication, an injury or illness), keep every step gentle and safe, set "care" to true, and say in "careNote" (max 160 characters) that a doctor or qualified professional should be involved. Never give medical dosing or diet numbers.',
-    'If the intention suggests the person may harm themselves or is in crisis, do not write a plan: return {"crisis": true}.',
+    'If the intention suggests the person may harm themselves or is in crisis, do not write a plan: return {"crisis": true}. Use crisis only for risk to the person themselves.',
+    'If the intention asks for help harming, deceiving, stalking or spying on someone else, getting into their accounts or property, or anything else illegal, do not write a plan: return {"refuse": true}.',
     'Plain, warm English. No emojis, no em dashes.',
     'Reply with JSON only: {"domain": "...", "milestones": ["...","...","...","..."], "weekly": ["...","...","..."], "habit": "...", "care": false, "careNote": ""}',
   ].join('\n');
@@ -134,6 +135,7 @@ export function parsePlan(text) {
   try { o = JSON.parse(raw); } catch { const m = raw.match(/\{[\s\S]*\}/); if (m) { try { o = JSON.parse(m[0]); } catch { /* fall through */ } } }
   if (!o || typeof o !== 'object') return { plan: null, why: 'The model did not return a readable plan.' };
   if (o.crisis === true) return { plan: null, crisis: true };
+  if (o.refuse === true) return { plan: null, refused: true };
   const milestones = Array.isArray(o.milestones) ? o.milestones.map(x => line(x)) : [];
   const weekly = Array.isArray(o.weekly) ? o.weekly.map(x => line(x)) : [];
   const habit = line(o.habit);

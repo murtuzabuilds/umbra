@@ -145,3 +145,10 @@ test('Conatus: /plan end to end, with input limits and no key in the answer', as
   const down = await handle(req('/plan', { method: 'POST', body: { intention: 'Run a 5k', days: 60 }, ip: 'cn3' }), env, async () => new Response('{"error":{"message":"bad key test-q"}}', { status: 401 }));
   const t = await down.text(); assert.equal(down.status, 502); assert.ok(!t.includes('test-q') && !t.includes('test-g'));
 });
+
+test('Conatus: a request to harm someone else is refused, not treated as a crisis', () => {
+  assert.deepEqual(parsePlan('{"refuse": true}'), { plan: null, refused: true });
+  assert.deepEqual(parsePlan('{"crisis": true}'), { plan: null, crisis: true });
+  const { system } = buildPlanMessages('x', '', 90);
+  assert.match(system, /"refuse": true/); assert.match(system, /crisis only for risk to the person themselves/);
+});
