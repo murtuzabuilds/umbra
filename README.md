@@ -2,7 +2,7 @@
 
 <h1 align="center">Umbra</h1>
 <p align="center">Using AI to govern AI inside a company.</p>
-<p align="center"><a href="https://murtuzabuilds.github.io/umbra/"><b>Interactive demo · sample data</b></a> · <a href="https://murtuzabuilds.github.io/umbra/case-study.html"><b>Case study</b></a> · <a href="https://murtuzabuilds.github.io/outpost/"><b>Outpost</b></a> · <a href="https://murtuzabuilds.github.io/"><b>Portfolio</b></a></p>
+<p align="center"><a href="https://murtuzabuilds.com/umbra/"><b>Interactive demo · sample data</b></a> · <a href="https://murtuzabuilds.com/umbra/case-study.html"><b>Case study</b></a> · <a href="https://murtuzabuilds.com/outpost/"><b>Outpost</b></a> · <a href="https://murtuzabuilds.com/"><b>Portfolio</b></a></p>
 
 ![Umbra overview screen](docs/totality.webp)
 
@@ -117,7 +117,7 @@ Rule drafting in Policies calls a real model: `openai/gpt-oss-120b` on Groq, thr
 
 ## Business model (proposed)
 
-The target is regulated companies with 500 to 5,000 employees, such as insurers, fintechs, healthcare and legal firms. They would start with a free, read-only 48-hour scan that produces the AI map and the Demand Map. Paid plans would be Govern at $6 per employee per month, Assure at $3 more, and $25 per agent per month. The [case study](https://murtuzabuilds.github.io/umbra/case-study.html) has the full reasoning.
+The target is regulated companies with 500 to 5,000 employees, such as insurers, fintechs, healthcare and legal firms. They would start with a free, read-only 48-hour scan that produces the AI map and the Demand Map. Paid plans would be Govern at $6 per employee per month, Assure at $3 more, and $25 per agent per month. The [case study](https://murtuzabuilds.com/umbra/case-study.html) has the full reasoning.
 
 ## Brand
 

@@ -10,7 +10,7 @@ export const HANDOFF_VERSION = 1;
 export const MAX_AGENTS = 3;
 
 /** Where Outpost lives. One constant; localhost points at a local copy for testing. */
-export const OUTPOST_URL = 'https://murtuzabuilds.github.io/outpost/';
+export const OUTPOST_URL = 'https://murtuzabuilds.com/outpost/';
 export const OUTPOST_LOCAL_URL = 'http://localhost:8821/index.html';
 
 /** The only tool ids Outpost accepts, with the words Outpost shows for them. */

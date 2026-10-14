@@ -90,13 +90,13 @@ test('base64url round trip, URL-safe, no padding, unicode kept', () => {
 });
 
 test('Outpost link: one constant, localhost for testing', () => {
-  assert.equal(OUTPOST_URL, 'https://murtuzabuilds.github.io/outpost/');
+  assert.equal(OUTPOST_URL, 'https://murtuzabuilds.com/outpost/');
   assert.equal(outpostBase('localhost'), OUTPOST_LOCAL_URL);
   assert.equal(outpostBase('127.0.0.1'), 'http://localhost:8821/index.html');
-  assert.equal(outpostBase('murtuzabuilds.github.io'), OUTPOST_URL);
+  assert.equal(outpostBase('murtuzabuilds.com'), OUTPOST_URL);
   const h = mergeHandoff(null, make());
-  const url = outpostLink(h, 'murtuzabuilds.github.io');
-  assert.ok(url.startsWith('https://murtuzabuilds.github.io/outpost/#dock='));
+  const url = outpostLink(h, 'murtuzabuilds.com');
+  assert.ok(url.startsWith('https://murtuzabuilds.com/outpost/#dock='));
   assert.deepEqual(decodeDock(url.split('#dock=')[1]), h);
 });
 
