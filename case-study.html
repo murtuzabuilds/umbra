@@ -86,6 +86,13 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .9s ease,transform .9s ease}.reveal.in{opacity:1;transform:none}
 @media(max-width:900px){html,body{overflow-x:hidden}table{display:block;overflow-x:auto}.c3,.c4,.c2,.road,.lex{grid-template-columns:1fr}.palette{grid-template-columns:repeat(3,1fr)}.feature,.feature:nth-child(even){grid-template-columns:1fr}.feature:nth-child(even) .txt{order:0}section{padding:80px 0}.wrap{padding:0 18px}nav.top{padding:12px 16px}nav.top a:not(.cta){display:none}table{font-size:13px}}
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+.ev{display:inline-flex;align-items:center;gap:6px;font:500 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:4px 8px 4px 7px;border-radius:999px;border:1px solid var(--line);color:var(--ink2);vertical-align:middle;white-space:nowrap}
+.ev i{width:6px;height:6px;border-radius:50%;background:var(--evc)}
+.ev-eval{--evc:#4F8BFF}.ev-sim{--evc:#E8B04B}
+.snap{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.snap small{display:block;font:11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px}
+.snap p{margin:0}
+@media (max-width:760px){.snap{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -101,6 +108,15 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
   </div>
   <div class="scroll">SCROLL</div>
 </header>
+
+<section id="snapshot"><div class="wrap">
+  <div class="label reveal">PM snapshot</div>
+  <div class="snap">
+    <div class="card reveal"><small>Target user</small><p>The CISO at a regulated company of 500 to 5,000 people, with the CIO as co-sponsor: reduce AI risk without becoming the reason the company falls behind.</p></div>
+    <div class="card reveal"><small>Primary metric</small><p>Share of AI work on approved tools. It only rises when people are both protected and well served.</p></div>
+    <div class="card reveal"><small>Key trade-off</small><p>AI drafts rules, but never enforces them. Fixed rules give the same answer every time and a person approves each change, at the cost of a slower path from idea to rule.</p></div>
+  </div>
+</div></section>
 
 <section id="moment"><div class="wrap">
   <div class="label reveal">01 &nbsp;The problem</div>
@@ -199,7 +215,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 <section id="results"><div class="wrap">
   <div class="label reveal">07 &nbsp;Results on the demo company</div>
   <h2 class="reveal">These numbers are <em>calculated when the page loads.</em></h2>
-  <p class="big reveal">The engine behind the console runs here in your browser, so none of these figures are typed in by hand. <span class="live">● computed from sample data</span></p>
+  <p class="big reveal">The engine behind the console runs here in your browser, so none of these figures are typed in by hand. <span class="ev ev-sim" title="Computed on a simulated company with sample data, not a customer result"><i></i>Simulation</span> <span class="live">computed from sample data on a fictional company</span></p>
   <table class="reveal" style="margin-top:24px"><thead><tr><th>Measure</th><th>Starting point</th><th>After one rule change</th><th>Why it matters</th></tr></thead><tbody id="results-body"><tr><td colspan="4" class="muted">Running the engine…</td></tr></tbody></table>
   <p class="src" style="margin-top:14px">The demo data is generated the same way every time, so the results can be reproduced. The "after" column switches on the confidential-files rule and has a person approve the one unowned agent, Agent 7f3, with an owner and limits, both of which you can do yourself in the console.</p>
   <div class="cols c4" style="margin-top:40px">
@@ -209,7 +225,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <div class="card reveal"><h3>Operations</h3><p>Open incidents per 1,000 employees, and how many raw alerts were grouped or closed automatically.</p></div>
   </div>
 
-  <h2 class="reveal" style="margin-top:80px">The one real model, <em>measured before it shipped.</em></h2>
+  <h2 class="reveal" style="margin-top:80px">The one real model, <em>measured before it shipped.</em> <span class="ev ev-eval" title="Measured on a fixed test set"><i></i>Evaluation</span></h2>
   <p class="big reveal">Corona's rule drafting is the only place a model works inside Umbra, so it is the one place I had to prove it helps. I wrote 51 policy sentences with an answer key, from plain wording to paraphrases, several conditions at once, sentences that should be flagged instead of drafted, and attempts to talk the model into an allow-everything rule. A case passes only if the draft matches the key, or if the model raises a doubt where it should. These are real results, not sample data.</p>
   <table class="reveal" style="margin-top:24px"><thead><tr><th>Group of sentences</th><th>Model</th><th>Rules-based parser</th></tr></thead><tbody>
     <tr><td>Plain wording</td><td>9 of 12</td><td>8 of 12</td></tr>
@@ -230,6 +246,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 <section id="gtm"><div class="wrap">
   <div class="label reveal">08 &nbsp;Go to market</div>
   <h2 class="reveal">Start with <em>mid-sized, regulated companies.</em></h2>
+  <div class="cols c3" style="margin-bottom:22px">
+    <div class="card stat reveal"><b>$492M</b><p>forecast spending on AI governance platforms in 2026, passing $1 billion by 2030.</p><small><a href="https://www.gartner.com/en/newsroom/press-releases/2026-02-17-gartner-global-ai-regulations-fuel-billion-dollar-market-for-ai-governance-platforms" target="_blank" rel="noopener">Gartner, Feb 2026</a></small></div>
+    <div class="card stat reveal"><b>1 in 5</b><p>organizations attributed a breach to shadow AI. Heavy shadow AI added about $670,000 to the cost of a breach.</p><small><a href="https://www.techrepublic.com/article/news-ai-breach-risks-rise-as-governance-lags/" target="_blank" rel="noopener">IBM Cost of a Data Breach, 2025</a></small></div>
+    <div class="card stat reveal"><b>63%</b><p>of breached organizations had no AI governance policy, or were still writing one.</p><small><a href="https://www.techrepublic.com/article/news-ai-breach-risks-rise-as-governance-lags/" target="_blank" rel="noopener">Same report</a></small></div>
+  </div>
   <div class="cols c2">
     <div class="card reveal"><h3>Ideal customer</h3><p>Regulated companies of 500 to 5,000 people (insurance, fintech, health, legal) with a lean security team, an AI mandate from the board, and no time for a six-month rollout. The CISO would buy it, and the CIO would back it, because the Demand Map is useful to them.</p></div>
     <div class="card reveal"><h3>First step: a free 48-hour scan</h3><p>The company connects its sign-in provider and web proxy logs, read-only, with nothing to install. Two days later it gets a map of its AI use and a Demand Map. That one report shows both the risk and the opportunity, and it is easy for a CISO to share with the board.</p></div>
