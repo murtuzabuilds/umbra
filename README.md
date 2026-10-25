@@ -109,7 +109,7 @@ Plain JavaScript with no dependencies. The engine lives in `src/` and everything
 | `index.js` | Runs everything, plus the maturity scale and the AI inventory export |
 
 ```bash
-npm test      # 64 tests
+npm test      # 70 tests
 npx serve .   # open the demo
 ```
 

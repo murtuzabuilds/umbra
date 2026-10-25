@@ -102,7 +102,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
   <canvas id="eclipse" aria-hidden="true"></canvas>
   <div class="copy">
     <div class="eyebrow">A case study by Murtuza</div>
-    <h1>We have made enough with AI.<br><em>Now we govern it.</em></h1>
+    <h1>Keep the AI your people rely on.<br><em>Govern what it sees.</em></h1>
     <p>Umbra uses AI to govern AI. It shows a company every AI tool and agent its people use, catches sensitive data before it goes out, and turns the unapproved tools it finds into a list of where to invest in AI next.</p>
     <div class="btns"><a class="btn primary" href="index.html">Try the console</a><a class="btn" href="https://github.com/murtuzabuilds/umbra">Read the code</a></div>
   </div>
@@ -153,6 +153,15 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <tr><td><b>CIO / transformation lead</b></td><td>Decide where AI investment pays off next</td><td>Buying tools nobody uses while people use tools nobody bought</td><td>The Demand Map: unapproved usage as a ranked backlog of approved AI plays</td></tr>
     <tr><td><b>Employee</b></td><td>Get the work done with the best tool available</td><td>Being blocked, or quietly getting in trouble</td><td>Sensitive details masked so the request can still go through, and a pointer to an approved tool that does the same job</td></tr>
   </tbody></table>
+  <h3 class="reveal" style="margin-top:48px;font-size:20px">What I am assuming, and how I would test it</h3>
+  <p class="big reveal" style="font-size:16px">Umbra is a personal project and has not been tested with customers. These are the bets it rests on, the test I would run first, and the result that would change the product.</p>
+  <table class="reveal" style="margin-top:12px"><thead><tr><th>Assumption</th><th>How I would test it</th><th>What would change my mind</th></tr></thead><tbody>
+    <tr><td><b>Security leads cannot see most of the AI their employees use.</b></td><td>Five interviews with security leads at regulated companies of 500 to 5,000 people. Ask each to list the AI tools in use, then compare with a read-only scan of their logs.</td><td>Their existing network tools already give them a complete list. Then discovery is not the wedge, and Umbra should lead with prompt guidance or agent control.</td></tr>
+    <tr><td><b>Guidance in the moment works better than blocking.</b></td><td>A pilot with one team, coaching by default, tracking how often people override a suggestion.</td><td>People override most suggestions. Then the guidance is noise, and the rules need to be fewer and stricter.</td></tr>
+    <tr><td><b>The Demand Map gives the CIO a reason to back the purchase.</b></td><td>Show a sample Demand Map to three CIOs or transformation leads and ask what they would fund from it.</td><td>None would act on it. Then Umbra is a security purchase only, priced and sold that way.</td></tr>
+    <tr><td><b>Drafting rules from plain English saves real time.</b></td><td>Time five analysts writing ten policies, with and without Corona, and check both sets against the same answer key.</td><td>It is not faster, or the drafts need so much fixing that the time saved disappears.</td></tr>
+  </tbody></table>
+
 </div></section>
 
 <section class="principles"><div class="wrap">
@@ -171,7 +180,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 <section id="product"><div class="wrap">
   <div class="label reveal">05 &nbsp;The product</div>
   <h2 class="reveal">A console for <em>the whole picture.</em></h2>
-  <p class="big reveal">Everything below works in the interactive demo (sample data), which runs on a tested engine (64 tests). The demo company is Kestrel Mutual, a made-up insurer with 2,400 staff and 30 days of generated activity.</p>
+  <p class="big reveal">Everything below works in the interactive demo (sample data), which runs on a tested engine (70 tests). The demo company is Kestrel Mutual, a made-up insurer with 2,400 staff and 30 days of generated activity.</p>
   <div>
     <div class="feature reveal"><div class="txt"><span class="tag">Overview</span><h3>How much of your AI use <em>you can actually see</em></h3><p>The Overview starts with the share of AI activity Umbra can see and classify. Next to it are the share of work on approved tools, how much sensitive data was contained, how many incidents are open, and a short weekly summary from Corona (AI assistant) with the most useful next steps. In the middle is Umbra at the centre: every AI tool at Kestrel Mutual on orbit, and each ring around a tool is a control that applies to it. Approved tools sit inside all six rings, unapproved ones further out, high-risk ones near the edge.</p></div><div class="shot"><img src="docs/totality.webp" alt="Umbra Overview with Umbra at the centre" loading="lazy"></div></div>
     <div class="feature reveal"><div class="txt"><span class="tag">AI map</span><h3>Every AI service <em>on one map</em></h3><p>Distance from the centre shows risk, size shows usage, and colour shows whether it is approved. Risk is computed from facts a buyer can verify: whether the vendor trains on inputs, how long it keeps them, which attestations it holds and where it processes data. Corona can also recognise AI services that are not in the catalog, just from the shape of the traffic.</p></div><div class="shot"><img src="docs/constellation.webp" alt="AI map of every service in use" loading="lazy"></div></div>
@@ -225,6 +234,15 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <div class="card reveal"><h3>Operations</h3><p>Open incidents per 1,000 employees, and how many raw alerts were grouped or closed automatically.</p></div>
   </div>
 
+  <h3 class="reveal" style="margin-top:48px;font-size:20px">How I would judge a 90-day pilot</h3>
+  <table class="reveal" style="margin-top:12px"><thead><tr><th>Metric</th><th>Role</th><th>Target</th><th>Why this number</th></tr></thead><tbody>
+    <tr><td><b>Share of AI work on approved tools</b></td><td>North star</td><td>Up 20 points from the scan</td><td>It rises only when approved tools are good enough that people choose them.</td></tr>
+    <tr><td><b>Exposures reaching a vendor, per 1,000 employees</b></td><td>Protection</td><td>Half the scan baseline</td><td>The risk the CISO is paying to reduce.</td></tr>
+    <tr><td><b>Override rate on guidance</b></td><td>Guardrail</td><td>Under 15% after month one</td><td>Above that, people are working around Umbra instead of with it.</td></tr>
+    <tr><td><b>Days to approve a requested tool</b></td><td>Friction</td><td>Under 5 working days</td><td>Slow approvals send people back to unapproved tools.</td></tr>
+  </tbody></table>
+  <p class="src" style="margin-top:12px">These are my targets for a pilot, not results. I would stop and rethink if the scan finds no more tools than staff already admit to, or if overrides stay above 30% after the rules are tuned.</p>
+
   <h2 class="reveal" style="margin-top:80px">The one real model, <em>measured before it shipped.</em> <span class="ev ev-eval" title="Measured on a fixed test set"><i></i>Evaluation</span></h2>
   <p class="big reveal">Corona's rule drafting is the only place a model works inside Umbra, so it is the one place I had to prove it helps. The test set has 51 policy sentences with an answer key, and I reviewed every sentence and expected rule before the model was scored. It runs from plain wording to paraphrases, several conditions at once, sentences that should be flagged instead of drafted, and attempts to talk the model into an allow-everything rule. A case passes only if the draft matches the key, or if the model raises a doubt where it should. These are real results, not sample data.</p>
   <table class="reveal" style="margin-top:24px"><thead><tr><th>Group of sentences</th><th>Model</th><th>Rules-based parser</th></tr></thead><tbody>
@@ -241,10 +259,36 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <div class="card reveal"><h3>Where it is weaker</h3><p>When a sentence hides an instruction, the model handled 2 of 4. In the other two it refused the whole sentence instead of drafting the genuine half: safe, but not useful. It never drafted an unsafe rule (0 of 51), and the checker refuses allow-everything rules anyway. Getting the genuine half out is the next thing to improve.</p></div>
     <div class="card reveal"><h3>Why this model</h3><p>I tested two free options. Groq answered in under half a second; a Gemini model answered correctly but several times slower, and its free daily quota ran out partway through the test. For a drafting box that a person waits on, speed decided it.</p></div>
   </div>
+
+  <h3 class="reveal" style="margin-top:48px;font-size:20px">Model card</h3>
+  <table class="reveal" style="margin-top:12px"><tbody>
+    <tr><td style="width:190px"><b>Model</b></td><td>gpt-oss-120b, OpenAI's open-weight model, served by Groq. The same model runs CardRight's merchant reader and Conatus's planner.</td></tr>
+    <tr><td><b>Job</b></td><td>Turn one policy sentence into a draft rule in Umbra's rule language. Nothing else. It never sees live traffic and never makes an enforcement decision.</td></tr>
+    <tr><td><b>Settings</b></td><td>Temperature 0, JSON output only, low reasoning effort. Every answer is checked against the rule language before anyone sees it, and anything that does not fit is dropped and named as a doubt.</td></tr>
+    <tr><td><b>Why this one</b></td><td>Three reasons. It answered fast enough for a box a person waits on. It beat the rules-based parser by 15 drafts on the same 51 sentences. And its weights are open, so a regulated customer could run it inside their own cloud and keep policy text away from a third party, which matters to the buyer Umbra is built for.</td></tr>
+    <tr><td><b>Tested against</b></td><td>The rules-based parser (28 of 51) and a Gemini Flash model, which drafted correctly but answered several times slower and ran out of free daily quota during the test.</td></tr>
+    <tr><td><b>Yields</b></td><td>43 of 51 drafts correct (84%), 0 unsafe drafts, 5 of 5 vague sentences flagged instead of drafted.</td></tr>
+    <tr><td><b>If it is down</b></td><td>After 8 seconds Umbra drafts with the rules-based parser and says so on screen. Drafting slows down; enforcement is not affected, because enforcement never used the model.</td></tr>
+    <tr><td><b>Cost</b></td><td>The model is called when someone writes a policy, a few times a week per customer, not on every prompt an employee sends. Inspection is plain code, so the cost of serving a customer does not grow with how much their staff use AI.</td></tr>
+  </tbody></table>
 </div></section>
 
+<section id="failures"><div class="wrap">
+  <div class="label reveal">08 &nbsp;When it goes wrong</div>
+  <h2 class="reveal">Every failure is designed <em>to fail closed.</em></h2>
+  <p class="big reveal">A governance product earns trust in its bad moments. These are the four that matter, what Umbra does in each, and the evidence behind it.</p>
+  <table class="reveal" style="margin-top:24px"><thead><tr><th>When</th><th>What Umbra does</th><th>Evidence</th></tr></thead><tbody>
+    <tr><td><b>The model drafts the wrong rule</b></td><td>The usual miss in testing was a dropped condition. "Block source code from tools that train on inputs" came back as "block everything sent to tools that train on inputs". A dropped condition makes a rule broader, so it blocks too much rather than letting data out. Every draft is shown in plain words, replayed on past traffic so its effect is visible, and switched on only by a person.</td><td>8 misses in 51, 0 unsafe drafts.</td></tr>
+    <tr><td><b>Context is missing</b></td><td>A sentence with no clear condition gets a doubt, not a rule. "Hold messages that contain hidden instructions" came back with the doubt "No condition, so this would apply to every AI interaction." Umbra also never drafts a rule that allows everything, even when asked, and a sentence with an instruction hidden inside it gets no draft at all.</td><td>5 of 5 vague sentences flagged. 2 of 4 hostile sentences drafted correctly, 2 refused, none unsafe.</td></tr>
+    <tr><td><b>The model call fails</b></td><td>If the model errors or takes longer than 8 seconds, Umbra drafts with its rules-based parser and tells the person which one wrote the draft. </td><td>Covered by tests for an error and a timeout.</td></tr>
+    <tr><td><b>An agent goes beyond its permissions</b></td><td>An agent with no owner can be paused in one click, and while it is paused the gateway refuses its calls. Pausing a model stops every agent that runs on it, in Umbra and in Outpost.</td><td>Shown live in the console and in the drill.</td></tr>
+  </tbody></table>
+  <p class="src" style="margin-top:12px">What Umbra cannot catch yet: a correctly drafted rule that a person approves for the wrong reason. Replaying it on past traffic shows the effect, but the judgment stays with the person.</p>
+</div></section>
+
+
 <section id="gtm"><div class="wrap">
-  <div class="label reveal">08 &nbsp;Go to market</div>
+  <div class="label reveal">09 &nbsp;Go to market</div>
   <h2 class="reveal">Start with <em>mid-sized, regulated companies.</em></h2>
   <div class="cols c3" style="margin-bottom:22px">
     <div class="card stat reveal"><b>$492M</b><p>forecast spending on AI governance platforms in 2026, passing $1 billion by 2030.</p><small><a href="https://www.gartner.com/en/newsroom/press-releases/2026-02-17-gartner-global-ai-regulations-fuel-billion-dollar-market-for-ai-governance-platforms" target="_blank" rel="noopener">Gartner, Feb 2026</a></small></div>
@@ -264,20 +308,43 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <div class="tier reveal"><span class="eyebrow">Agents</span><br><b>$25 <small>/ agent / month</small></b><ul><li>MCP gateway and mandates</li><li>Blast radius and quarantine</li><li>Injection defence</li></ul></div>
   </div>
   <p class="src" style="margin-top:12px">These prices are my proposal for this case study. For a company the size of Kestrel Mutual, Govern and Assure together come to about <span class="num">$259k a year</span> before agents.</p>
-  <div class="cols c3" style="margin-top:40px">
-    <div class="card reveal"><h3>Compared with network security tools</h3><p>They see traffic and allow or block it. Umbra adds prompt-level guidance, agent controls and the Demand Map, and can use their logs instead of replacing them.</p></div>
-    <div class="card reveal"><h3>Compared with AI firewalls</h3><p>Most are now part of large security suites and priced for big enterprises. Umbra competes on faster setup, clearer explanations and the value it offers the CIO.</p></div>
-    <div class="card reveal"><h3>Compared with compliance tools</h3><p>They mostly collect questionnaires. Umbra produces evidence from what the system actually did.</p></div>
+  <h3 class="reveal" style="margin-top:48px;font-size:20px">What a CISO uses today instead</h3>
+  <table class="reveal" style="margin-top:12px"><thead><tr><th>Alternative</th><th>Good at</th><th>Gap for a 500 to 5,000 person regulated company</th></tr></thead><tbody>
+    <tr><td><b>Spreadsheets, surveys and an acceptable use policy</b></td><td>Cheap, and enough to show a board that a policy exists.</td><td>Only knows the AI that people admit to. Nothing stops sensitive data at the moment it is sent.</td></tr>
+    <tr><td><b>AI governance platforms</b> (Credo AI, IBM watsonx.governance, OneTrust)</td><td>Inventories, risk assessments and mapping to the EU AI Act and ISO 42001.</td><td>Built around models a company builds or buys on purpose. They see little of the tools employees adopt on their own, and do not act on live prompts.</td></tr>
+    <tr><td><b>AI security tools inside large suites</b> (Prompt Security, now SentinelOne; Lakera, now Check Point; CalypsoAI, now F5)</td><td>Strong inspection of prompts and responses at runtime.</td><td>Now sold as part of large security platforms, with the price and rollout that come with them. Weak on the CIO's question of where to invest.</td></tr>
+    <tr><td><b>Network security the company already owns</b></td><td>Sees which AI services are reached, and can allow or block them.</td><td>Allow or block only: no guidance in the moment, no agent controls, no Demand Map.</td></tr>
+    <tr><td><b>Microsoft Agent 365</b></td><td>Registers and governs agents built with Microsoft tools, and it is bundled into licences many companies already pay for.</td><td>Centred on Microsoft's own agents. Umbra's case is the tools and agents outside one vendor.</td></tr>
+  </tbody></table>
+  <div class="cols c3" style="margin-top:22px">
+    <div class="card reveal"><h3>Where Umbra wins</h3><p>A lean security team that needs coverage in weeks, not a six-month rollout, and a CIO who wants a list of where to invest. Umbra is better for that buyer, not for everyone.</p></div>
+    <div class="card reveal"><h3>Who should not buy it</h3><p>A company with a large security team already standardised on one suite, or one whose AI use is mostly models it builds itself. A governance platform fits them better.</p></div>
+    <div class="card reveal"><h3>What can slow a rollout</h3><p>The customer's own security review, a SOC 2 report, single sign-on and data residency. The read-only scan is designed to get through that review first, because it installs nothing and stores findings rather than prompt text.</p></div>
   </div>
+  <p class="src" style="margin-top:12px">Sources: <a href="https://www.kovrr.com/blog-post/top-ai-governance-platforms-2026-comparison-guide" target="_blank" rel="noopener">AI governance platform comparison, 2026</a> · <a href="https://www.decryptiondigest.com/blog/ai-guardrail-vendors-after-acquisition-lakera-prompt-security-aim-calypsoai" target="_blank" rel="noopener">AI runtime security acquisitions, 2025</a> · <a href="https://www.epcgroup.net/blog/microsoft-agent-365-general-availability-may-2026-registry-sync-aws-google-cloud" target="_blank" rel="noopener">Microsoft Agent 365, May 2026</a></p>
 </div></section>
 
 <section><div class="wrap">
-  <div class="label reveal">09 &nbsp;Roadmap and risks</div>
+  <div class="label reveal">10 &nbsp;Roadmap and risks</div>
   <h2 class="reveal">What comes next, and <em>what could go wrong.</em></h2>
   <div class="road">
     <div class="card reveal"><h3>Now</h3><ul><li>Discovery from logs and app grants</li><li>Deterministic inspection and redaction</li><li>Policies with traces, triage, coaching</li><li>Evidence packs</li><li>Corona drafting on a real model, checked and with a fallback</li><li>Models: pause one, and its agents stop in Umbra and Outpost</li></ul></div>
     <div class="card reveal"><h3>Next</h3><ul><li>Draft the genuine part of a sentence that hides an instruction (2 of 4 today)</li><li>The agent gateway ready for production</li><li>Tool approval workflow with vendor facts pre-filled</li><li>AI bill of materials in customer pipelines</li></ul></div>
     <div class="card reveal"><h3>Later</h3><ul><li>An open format for agent permissions that works across platforms</li><li>Reports that cyber insurers can accept</li><li>Automatic fixes, always approved by a person</li></ul></div>
+  </div>
+  <h3 class="reveal" style="margin-top:48px;font-size:20px">How I prioritised the next quarter</h3>
+  <p class="big reveal" style="font-size:16px">Scored with RICE: reach is how many of ten pilot customers it touches, impact runs from 0.25 to 3, confidence is how sure I am of both, and effort is in person-weeks. These are my estimates, and the point of writing them down is that they can be argued with.</p>
+  <table class="reveal" style="margin-top:12px"><thead><tr><th>Backlog item</th><th>Reach</th><th>Impact</th><th>Confidence</th><th>Effort</th><th>Score</th></tr></thead><tbody>
+    <tr><td><b>Board-ready Demand Map report</b></td><td>9</td><td>1</td><td>90%</td><td>1</td><td><b>8.1</b></td></tr>
+    <tr><td><b>Catch a dropped condition before a person sees the draft</b></td><td>10</td><td>2</td><td>80%</td><td>2</td><td><b>8.0</b></td></tr>
+    <tr><td><b>Send incidents to the customer's SIEM</b></td><td>7</td><td>1</td><td>80%</td><td>2</td><td>2.8</td></tr>
+    <tr><td><b>Tool approval workflow with vendor facts filled in</b></td><td>8</td><td>2</td><td>70%</td><td>4</td><td>2.8</td></tr>
+    <tr><td><b>Production-ready agent gateway</b></td><td>4</td><td>3</td><td>50%</td><td>10</td><td>0.6</td></tr>
+    <tr><td><b>Draft the genuine half of a hostile sentence</b></td><td>3</td><td>1</td><td>50%</td><td>3</td><td>0.5</td></tr>
+  </tbody></table>
+  <div class="cols c2" style="margin-top:22px">
+    <div class="card reveal"><h3>Deferred on purpose: the agent gateway</h3><p>It has the highest impact on the list, and the lowest confidence. Most mid-sized companies run a handful of agents today, and Outpost already covers the day-to-day running of them. I would build it when three pilot customers have agents in production.</p></div>
+    <div class="card reveal"><h3>Not on the list at all</h3><p>A model that makes the final enforcement decision. It would score well on reach and it would demo well, and it breaks the promise the product is built on: the same input always gets the same answer.</p></div>
   </div>
   <table class="reveal" style="margin-top:34px"><thead><tr><th>Risk</th><th>How I would handle it</th></tr></thead><tbody>
     <tr><td><b>Too many false alarms</b></td><td>Guidance is the default, hard blocks are kept for secrets and regulated data, and every rule change is tested on past traffic first. The override rate is tracked closely.</td></tr>
@@ -288,7 +355,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 </div></section>
 
 <section id="brand"><div class="wrap">
-  <div class="label reveal">10 &nbsp;Brand</div>
+  <div class="label reveal">11 &nbsp;Brand</div>
   <h2 class="reveal">The mark is <em>an eclipse.</em></h2>
   <div class="cols c2" style="align-items:center">
     <div class="reveal" style="display:grid;place-items:center;padding:30px"><span id="bigmark"></span></div>
@@ -307,7 +374,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 </div></section>
 
 <section id="after"><div class="wrap">
-  <div class="label reveal">11 &nbsp;Where Umbra stops</div>
+  <div class="label reveal">12 &nbsp;Where Umbra stops</div>
   <h2 class="reveal">Umbra decides which AI gets in. <em>It does not run the work.</em></h2>
   <div class="cols c2">
     <div class="reveal"><p class="big" style="font-size:19px">Umbra is a governance product. Its user is the security or risk lead, its timescale is weeks and quarters, and what it looks at is every AI tool across the company and the content flowing into it. Once an agent is approved, with a named owner and a list of what it may touch, Umbra's part is done.</p></div>
