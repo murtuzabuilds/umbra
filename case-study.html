@@ -93,6 +93,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 .snap small{display:block;font:11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px}
 .snap p{margin:0}
 @media (max-width:760px){.snap{grid-template-columns:1fr}}
+.glance td:last-child{white-space:nowrap;text-align:right}.glance td:last-child a{color:var(--corona);text-decoration:none;font-size:14px}.glance td:last-child a::after{content:" \2192"}
 </style>
 </head>
 <body>
@@ -116,6 +117,14 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <div class="card reveal"><small>Primary metric</small><p>Share of AI work on approved tools. It only rises when people are both protected and well served.</p></div>
     <div class="card reveal"><small>Key trade-off</small><p>AI drafts rules, but never enforces them. Fixed rules give the same answer every time and a person approves each change, at the cost of a slower path from idea to rule.</p></div>
   </div>
+  <table class="reveal glance" style="margin-top:28px"><thead><tr><th>At a glance</th><th></th><th></th></tr></thead><tbody>
+    <tr><td><b>Problem and user</b></td><td>Security leads at regulated companies of 500 to 5,000 people cannot see or control the AI their staff use.</td><td><a href="#moment">Problem</a></td></tr>
+    <tr><td><b>Alternatives</b></td><td>Spreadsheets and surveys, AI governance platforms, AI security inside large suites, existing network tools, Microsoft Agent 365.</td><td><a href="#gtm">Alternatives</a></td></tr>
+    <tr><td><b>Decisions</b></td><td>AI drafts rules and fixed rules enforce them. The agent gateway is deferred, and a model that makes the final call is never built.</td><td><a href="#roadmap">Backlog</a></td></tr>
+    <tr><td><b>Evidence</b></td><td>On a 51-sentence test set I wrote, 43 drafts right against 28 for rules alone, 0 unsafe. The misses and failure cases are listed.</td><td><a href="#results">Test</a></td></tr>
+    <tr><td><b>Next step</b></td><td>Five interviews with security leads and a read-only log scan, to test whether discovery is the real gap. Not yet tested with customers.</td><td><a href="#people">Assumptions</a></td></tr>
+  </tbody></table>
+
 </div></section>
 
 <section id="moment"><div class="wrap">
@@ -324,7 +333,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
   <p class="src" style="margin-top:12px">Sources: <a href="https://www.kovrr.com/blog-post/top-ai-governance-platforms-2026-comparison-guide" target="_blank" rel="noopener">AI governance platform comparison, 2026</a> · <a href="https://www.decryptiondigest.com/blog/ai-guardrail-vendors-after-acquisition-lakera-prompt-security-aim-calypsoai" target="_blank" rel="noopener">AI runtime security acquisitions, 2025</a> · <a href="https://www.epcgroup.net/blog/microsoft-agent-365-general-availability-may-2026-registry-sync-aws-google-cloud" target="_blank" rel="noopener">Microsoft Agent 365, May 2026</a></p>
 </div></section>
 
-<section><div class="wrap">
+<section id="roadmap"><div class="wrap">
   <div class="label reveal">10 &nbsp;Roadmap and risks</div>
   <h2 class="reveal">What comes next, and <em>what could go wrong.</em></h2>
   <div class="road">
