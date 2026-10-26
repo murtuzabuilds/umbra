@@ -63,5 +63,5 @@ export function readModelPause(storage) {
  */
 export const DRAFTER_MODEL = {
   provider: 'Groq', model: 'openai/gpt-oss-120b',
-  eval: { total: 51, pass: 43, unsafe: 0, baseline: 28, ran: '2026-10-09' },
+  eval: { total: 51, pass: 46, unsafe: 0, baseline: 28, ran: '2026-10-26' },
 };

@@ -132,7 +132,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <tr><td><b>Problem and user</b></td><td>Security leads at regulated companies of 500 to 5,000 people cannot see or control the AI their staff use.</td><td><a href="#moment">Problem</a></td></tr>
     <tr><td><b>Alternatives</b></td><td>Spreadsheets and surveys, AI governance platforms, AI security inside large suites, existing network tools, Microsoft Agent 365.</td><td><a href="#gtm">Alternatives</a></td></tr>
     <tr><td><b>Decisions</b></td><td>AI drafts rules and fixed rules enforce them. The agent gateway is deferred, and a model that makes the final call is never built.</td><td><a href="#roadmap">Backlog</a></td></tr>
-    <tr><td><b>Evidence</b></td><td>On a 51-sentence test set I wrote, 43 drafts right against 28 for rules alone, 0 unsafe. The misses and failure cases are listed.</td><td><a href="#results">Test</a></td></tr>
+    <tr><td><b>Evidence</b></td><td>On a 51-sentence test set I wrote, 46 drafts right against 28 for rules alone, 0 unsafe. The misses and failure cases are listed.</td><td><a href="#results">Test</a></td></tr>
     <tr><td><b>What is proven</b></td><td>Proven: it can be built, and the drafting works on my test set. Heard in five conversations: finding AI tools is only partly solved, and approval and audit evidence are a sharper pain. Still assumed: that security leads would pay for it.</td><td><a href="#people">Assumptions</a></td></tr>
     <tr><td><b>Next step</b></td><td>A read-only log scan with one company, and the tool approval workflow, which discovery moved up the backlog. No users yet.</td><td><a href="#people">Assumptions</a></td></tr>
   </tbody></table>
@@ -211,7 +211,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
       <div class="branch"><div class="stem"></div>
         <div class="node opp"><small>Problem</small>Turning a written policy into rules takes too long.</div><div class="stem"></div>
         <div class="node"><small>What I built</small>Corona drafts rules from plain English, and fixed rules enforce them.</div><div class="stem"></div>
-        <div class="node test"><small>Test</small><b>Run:</b> 43 of 51 drafted right, against 28 for rules alone. Next: time five analysts with and without it.</div>
+        <div class="node test"><small>Test</small><b>Run:</b> 46 of 51 drafted right, against 28 for rules alone. Next: time five analysts with and without it.</div>
       </div>
     </div>
   </div>
@@ -301,17 +301,17 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
   <h2 class="reveal" style="margin-top:80px">The one real model, <em>measured before it shipped.</em> <span class="ev ev-eval" title="Measured on a fixed test set"><i></i>Evaluation</span></h2>
   <p class="big reveal">Corona's rule drafting is the only place a model works inside Umbra, so it is the one place I had to prove it helps. The test set has 51 policy sentences with an answer key, and I reviewed every sentence and expected rule before the model was scored. It runs from plain wording to paraphrases, several conditions at once, sentences that should be flagged instead of drafted, and attempts to talk the model into an allow-everything rule. A case passes only if the draft matches the key, or if the model raises a doubt where it should. These are real results, not sample data.</p>
   <table class="reveal" style="margin-top:24px"><thead><tr><th>Group of sentences</th><th>Model</th><th>Rules-based parser</th></tr></thead><tbody>
-    <tr><td>Plain wording</td><td>9 of 12</td><td>8 of 12</td></tr>
+    <tr><td>Plain wording</td><td>11 of 12</td><td>8 of 12</td></tr>
     <tr><td>Paraphrases</td><td><b>9 of 12</b></td><td>2 of 12</td></tr>
     <tr><td>Several conditions</td><td>10 of 10</td><td>8 of 10</td></tr>
     <tr><td>Teams and tool types</td><td><b>8 of 8</b></td><td>2 of 8</td></tr>
     <tr><td>Should be flagged, not drafted</td><td>5 of 5</td><td>4 of 5</td></tr>
-    <tr><td>Attempts to derail it</td><td>2 of 4</td><td><b>4 of 4</b></td></tr>
-    <tr><td><b>All 51</b></td><td><b style="color:var(--corona)">43 (84%)</b></td><td>28 (55%)</td></tr>
+    <tr><td>Attempts to derail it</td><td>3 of 4</td><td><b>4 of 4</b></td></tr>
+    <tr><td><b>All 51</b></td><td><b style="color:var(--corona)">46 (90%)</b></td><td>28 (55%)</td></tr>
   </tbody></table>
   <div class="cols c3" style="margin-top:40px">
     <div class="card reveal"><h3>What it showed</h3><p>The model earns its place on the way people actually write: paraphrases and team names, where the parser fails. On plain wording the two are close.</p></div>
-    <div class="card reveal"><h3>Where it is weaker</h3><p>When a sentence hides an instruction, the model handled 2 of 4. In the other two it refused the whole sentence instead of drafting the genuine half: safe, but not useful. It never drafted an unsafe rule (0 of 51), and the checker refuses allow-everything rules anyway. Getting the genuine half out is the next thing to improve.</p></div>
+    <div class="card reveal"><h3>Where it is weaker</h3><p>When a sentence hides an instruction, the model handled 3 of 4. In the other one it refused the whole sentence instead of drafting the genuine half: safe, but not useful. It never drafted an unsafe rule (0 of 51 in either run), and the checker refuses allow-everything rules anyway. Getting the genuine half out is the next thing to improve.</p></div>
     <div class="card reveal"><h3>Why this model</h3><p>I tested two free options. Groq returned a checked draft in a median of 481 ms (90th percentile 609 ms) across all 51 test sentences, timed end to end through the live server on 26 October 2026; a Gemini model answered correctly but several times slower, and its free daily quota ran out partway through the test. For a drafting box that a person waits on, speed decided it.</p></div>
   </div>
 
@@ -320,9 +320,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <tr><td style="width:190px"><b>Model</b></td><td>gpt-oss-120b, OpenAI's open-weight model, served by Groq. The same model runs CardRight's merchant reader and Conatus's planner.</td></tr>
     <tr><td><b>Job</b></td><td>Turn one policy sentence into a draft rule in Umbra's rule language. Nothing else. It never sees live traffic and never makes an enforcement decision.</td></tr>
     <tr><td><b>Settings</b></td><td>Temperature 0, JSON output only, low reasoning effort. Every answer is checked against the rule language before anyone sees it, and anything that does not fit is dropped and named as a doubt.</td></tr>
-    <tr><td><b>Why this one</b></td><td>Three reasons. It returned drafts in a median of 481 ms, fast enough for a box a person waits on. It beat the rules-based parser by 15 drafts on the same 51 sentences. And its weights are open, so a regulated customer could run it inside their own cloud and keep policy text away from a third party, which matters to the buyer Umbra is built for.</td></tr>
+    <tr><td><b>Why this one</b></td><td>Three reasons. It returned drafts in a median of 481 ms, fast enough for a box a person waits on. It beat the rules-based parser by 18 drafts on the same 51 sentences. And its weights are open, so a regulated customer could run it inside their own cloud and keep policy text away from a third party, which matters to the buyer Umbra is built for.</td></tr>
     <tr><td><b>Tested against</b></td><td>The rules-based parser (28 of 51) and a Gemini Flash model, which drafted correctly but answered several times slower and ran out of free daily quota during the test.</td></tr>
-    <tr><td><b>Yields</b></td><td>43 of 51 drafts correct (84%) in the first run, 0 unsafe drafts, 5 of 5 vague sentences flagged instead of drafted. A rerun on 26 October 2026 scored 46 of 51, again with 0 unsafe; the site keeps the lower first figure.</td></tr>
+    <tr><td><b>Yields</b></td><td>46 of 51 drafts correct (90%) on the latest run, 26 October 2026, with 0 unsafe drafts and 5 of 5 vague sentences flagged instead of drafted. The first run, on 9 October, scored 43 of 51, also with 0 unsafe. Both result files are in the repository.</td></tr>
     <tr><td><b>If it is down</b></td><td>After 8 seconds Umbra drafts with the rules-based parser and says so on screen. Drafting slows down; enforcement is not affected, because enforcement never used the model.</td></tr>
     <tr><td><b>Cost</b></td><td>The model is called when someone writes a policy, a few times a week per customer, not on every prompt an employee sends. Inspection is plain code, so the cost of serving a customer does not grow with how much their staff use AI.</td></tr>
   </tbody></table>
@@ -333,8 +333,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
   <h2 class="reveal">Every failure is designed <em>to fail closed.</em></h2>
   <p class="big reveal">A governance product earns trust in its bad moments. These are the four that matter, what Umbra does in each, and the evidence behind it.</p>
   <table class="reveal" style="margin-top:24px"><thead><tr><th>When</th><th>What Umbra does</th><th>Evidence</th></tr></thead><tbody>
-    <tr><td><b>The model drafts the wrong rule</b></td><td>The usual miss in testing was a dropped condition. "Block source code from tools that train on inputs" came back as "block everything sent to tools that train on inputs". A dropped condition makes a rule broader, so it blocks too much rather than letting data out. Every draft is shown in plain words, replayed on past traffic so its effect is visible, and switched on only by a person.</td><td>8 misses in 51, 0 unsafe drafts.</td></tr>
-    <tr><td><b>Context is missing</b></td><td>A sentence with no clear condition gets a doubt, not a rule. "Hold messages that contain hidden instructions" came back with the doubt "No condition, so this would apply to every AI interaction." Umbra also never drafts a rule that allows everything, even when asked, and a sentence with an instruction hidden inside it gets no draft at all.</td><td>5 of 5 vague sentences flagged. 2 of 4 hostile sentences drafted correctly, 2 refused, none unsafe.</td></tr>
+    <tr><td><b>The model drafts the wrong rule</b></td><td>A typical miss is a dropped condition. In the latest run, "Board papers are off limits for AI apps we have not cleared" came back as "block everything sent to apps we have not cleared". A dropped condition makes a rule broader, so it blocks too much rather than letting data out. Every draft is shown in plain words, replayed on past traffic so its effect is visible, and switched on only by a person.</td><td>5 misses in 51, 0 unsafe drafts.</td></tr>
+    <tr><td><b>Context is missing</b></td><td>A sentence with no clear condition gets a doubt, not a rule. In the first run, "Hold messages that contain hidden instructions" came back with the doubt "No condition, so this would apply to every AI interaction." Umbra also never drafts a rule that allows everything, even when asked, and a sentence with an instruction hidden inside it gets no draft at all.</td><td>5 of 5 vague sentences flagged. 3 of 4 hostile sentences handled correctly, 1 refused, none unsafe.</td></tr>
     <tr><td><b>The model call fails</b></td><td>If the model errors or takes longer than 8 seconds, Umbra drafts with its rules-based parser and tells the person which one wrote the draft. </td><td>Covered by tests for an error and a timeout.</td></tr>
     <tr><td><b>An agent goes beyond its permissions</b></td><td>An agent with no owner can be paused in one click, and while it is paused the gateway refuses its calls. Pausing a model stops every agent that runs on it, in Umbra and in Outpost.</td><td>Shown live in the console and in the drill.</td></tr>
   </tbody></table>
@@ -374,7 +374,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <tr><td><b>Microsoft Agent 365</b></td><td>Agent registry, least-privilege access and observability, sold standalone at <a href="https://rencore.com/en/blog/understanding-microsoft-agent-365-pricing" target="_blank" rel="noopener">$15 per user per month</a> since May 2026.</td><td>Strongest on agents built in Microsoft 365. Umbra's case is the AI tools and agents outside one vendor, plus the handoff to Outpost.</td></tr>
   </tbody></table>
   <div class="cols c3" style="margin-top:22px">
-    <div class="card reveal"><h3>Where Umbra wins</h3><p>Two things no product in this table does. The Demand Map turns unapproved AI use into a ranked list of approved tools to fund. And AI drafts each rule while fixed rules enforce it: 43 of 51 drafted right, against 28 for rules alone. Best fit: a lean security team at a regulated company of 500 to 5,000 people. My read is that large suites will be slow to chase this buyer: their pricing, rollout and sales teams are built around big enterprises.</p></div>
+    <div class="card reveal"><h3>Where Umbra wins</h3><p>Two things no product in this table does. The Demand Map turns unapproved AI use into a ranked list of approved tools to fund. And AI drafts each rule while fixed rules enforce it: 46 of 51 drafted right, against 28 for rules alone. Best fit: a lean security team at a regulated company of 500 to 5,000 people. My read is that large suites will be slow to chase this buyer: their pricing, rollout and sales teams are built around big enterprises.</p></div>
     <div class="card reveal"><h3>Who should not buy it</h3><p>A company with a large security team already standardised on one suite, or one whose AI use is mostly models it builds itself. A governance platform fits them better.</p></div>
     <div class="card reveal"><h3>What can slow a rollout</h3><p>The customer's own security review, a SOC 2 report, single sign-on and data residency. The read-only scan is designed to get through that review first, because it installs nothing and stores findings rather than prompt text.</p></div>
   </div>
@@ -386,7 +386,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
   <h2 class="reveal">What comes next, and <em>what could go wrong.</em></h2>
   <div class="road">
     <div class="card reveal"><h3>Now</h3><ul><li>Discovery from logs and app grants</li><li>Deterministic inspection and redaction</li><li>Policies with traces, triage, coaching</li><li>Evidence packs</li><li>Corona drafting on a real model, checked and with a fallback</li><li>Models: pause one, and its agents stop in Umbra and Outpost</li></ul></div>
-    <div class="card reveal"><h3>Next</h3><ul><li>Draft the genuine part of a sentence that hides an instruction (2 of 4 today)</li><li>The agent gateway ready for production</li><li>Tool approval workflow with vendor facts pre-filled</li><li>AI bill of materials in customer pipelines</li></ul></div>
+    <div class="card reveal"><h3>Next</h3><ul><li>Draft the genuine part of a sentence that hides an instruction (3 of 4 today)</li><li>The agent gateway ready for production</li><li>Tool approval workflow with vendor facts pre-filled</li><li>AI bill of materials in customer pipelines</li></ul></div>
     <div class="card reveal"><h3>Later</h3><ul><li>An open format for agent permissions that works across platforms</li><li>Reports that cyber insurers can accept</li><li>Automatic fixes, always approved by a person</li></ul></div>
   </div>
   <h3 class="reveal" style="margin-top:48px;font-size:20px">How I prioritised the next quarter</h3>
@@ -408,7 +408,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <tr><td><b>Too many false alarms</b></td><td>Guidance is the default, hard blocks are kept for secrets and regulated data, and every rule change is tested on past traffic first. The override rate is tracked closely.</td></tr>
     <tr><td><b>Employees feel watched</b></td><td>Checks run on the employee's device, and Umbra stores what it found rather than the text itself. People can see exactly what was masked and why, which also makes it easier to explain to works councils.</td></tr>
     <tr><td><b>Big security suites add basic AI features</b></td><td>Focus on what they do least well: fast setup for mid-sized companies, agent controls, and the Demand Map, which gives the CIO a reason to buy.</td></tr>
-    <tr><td><b>The AI layer gets fooled</b></td><td>Corona never makes the final decision. What it produces is checked against the rule language, tested on past traffic and approved by a person first. On the 51-case test it drafted no unsafe rules; with 2 of 4 hostile sentences it played safe and drafted nothing.</td></tr>
+    <tr><td><b>The AI layer gets fooled</b></td><td>Corona never makes the final decision. What it produces is checked against the rule language, tested on past traffic and approved by a person first. On the 51-case test it drafted no unsafe rules; with 1 of 4 hostile sentences it played safe and drafted nothing.</td></tr>
   </tbody></table>
 </div></section>
 
