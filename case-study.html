@@ -94,6 +94,17 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 .snap p{margin:0}
 @media (max-width:760px){.snap{grid-template-columns:1fr}}
 .glance td:last-child{white-space:nowrap;text-align:right}.glance td:last-child a{color:var(--corona);text-decoration:none;font-size:14px}.glance td:last-child a::after{content:" \2192"}
+.tree{margin-top:18px}
+.tree .root{max-width:560px;margin:0 auto;text-align:center;border:1px solid var(--corona);border-radius:16px;padding:16px 20px;background:var(--raised)}
+.tree .root small,.tree .node small{display:block;font:11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px}
+.tree .root b{font-weight:500;font-size:18px}
+.tree .stem{width:1px;height:24px;background:var(--line2);margin:0 auto}
+.tree .bar{height:1px;background:var(--line2);margin:0 16.66%}
+.tree .branches{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.tree .branch{display:flex;flex-direction:column;align-items:stretch}
+.tree .node{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:linear-gradient(180deg,var(--raised),var(--deep));font-size:15px;color:var(--ink2)}
+.tree .node.opp{color:var(--ink)}.tree .node.test b{color:var(--corona);font-weight:500}
+@media(max-width:900px){.tree .branches{grid-template-columns:1fr}.tree .bar{display:none}}
 </style>
 </head>
 <body>
@@ -122,7 +133,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <tr><td><b>Alternatives</b></td><td>Spreadsheets and surveys, AI governance platforms, AI security inside large suites, existing network tools, Microsoft Agent 365.</td><td><a href="#gtm">Alternatives</a></td></tr>
     <tr><td><b>Decisions</b></td><td>AI drafts rules and fixed rules enforce them. The agent gateway is deferred, and a model that makes the final call is never built.</td><td><a href="#roadmap">Backlog</a></td></tr>
     <tr><td><b>Evidence</b></td><td>On a 51-sentence test set I wrote, 43 drafts right against 28 for rules alone, 0 unsafe. The misses and failure cases are listed.</td><td><a href="#results">Test</a></td></tr>
-    <tr><td><b>Next step</b></td><td>Five interviews with security leads and a read-only log scan, to test whether discovery is the real gap. Not yet tested with customers.</td><td><a href="#people">Assumptions</a></td></tr>
+    <tr><td><b>What is proven</b></td><td>Proven: it can be built, and the drafting works on my test set. Heard in five conversations: finding AI tools is only partly solved, and approval and audit evidence are a sharper pain. Still assumed: that security leads would pay for it.</td><td><a href="#people">Assumptions</a></td></tr>
+    <tr><td><b>Next step</b></td><td>A read-only log scan with one company, and the tool approval workflow, which discovery moved up the backlog. No users yet.</td><td><a href="#people">Assumptions</a></td></tr>
   </tbody></table>
 
 </div></section>
@@ -154,7 +166,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 <section id="people"><div class="wrap">
   <div class="label reveal">03 &nbsp;Who it is for</div>
   <h2 class="reveal">Five people who <em>see the same data</em> differently.</h2>
-  <p class="big reveal">These are working assumptions based on published research and what I saw delivering enterprise AI and digital transformation projects. I would test them in customer interviews before building further.</p>
+  <p class="big reveal">These are working assumptions based on published research and what I saw delivering enterprise AI and digital transformation projects. Five discovery conversations, summarized below, tested parts of them.</p>
   <table class="reveal" style="margin-top:28px"><thead><tr><th>Person</th><th>Job to be done</th><th>What they fear</th><th>What Umbra gives them</th></tr></thead><tbody>
     <tr><td><b>CISO</b></td><td>Reduce AI risk without becoming the reason the company falls behind</td><td>A leak through a tool nobody knew existed</td><td>A full list of AI services and agents with risk scores, and sensitive data stopped before it leaves</td></tr>
     <tr><td><b>SOC analyst</b></td><td>Know which of hundreds of alerts matter today</td><td>Alert fatigue, missing the one that counted</td><td>A short queue grouped by what needs deciding, with a plain summary of each case</td></tr>
@@ -162,14 +174,47 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <tr><td><b>CIO / transformation lead</b></td><td>Decide where AI investment pays off next</td><td>Buying tools nobody uses while people use tools nobody bought</td><td>The Demand Map: unapproved usage as a ranked backlog of approved AI plays</td></tr>
     <tr><td><b>Employee</b></td><td>Get the work done with the best tool available</td><td>Being blocked, or quietly getting in trouble</td><td>Sensitive details masked so the request can still go through, and a pointer to an approved tool that does the same job</td></tr>
   </tbody></table>
+  <h3 class="reveal" style="margin-top:48px;font-size:20px">What I heard in five conversations</h3>
+  <p class="big reveal" style="font-size:16px">Five people from my MBA and professional network: a security manager at a 2,000-person company, a lead for enterprise AI adoption, a compliance manager in a regulated business, an IT operations manager and an operations leader sponsoring AI projects. These are my summaries of the conversations, not quotes.</p>
+  <table class="reveal" style="margin-top:12px"><thead><tr><th>What I heard</th><th>What it changed</th></tr></thead><tbody>
+    <tr><td><b>Finding unapproved AI is only partly solved.</b> Procurement records and security alerts gave one team a partial list that missed tools bought on personal cards or bundled into existing software.</td><td>Confirms discovery as a real gap, but not the whole problem.</td></tr>
+    <tr><td><b>Approval is the slower pain.</b> Teams submit review information in different shapes, missing details go back and forth, and one pilot was delayed by it. A newly found tool took about two weeks and three functions to resolve.</td><td>The tool approval workflow moves up the backlog.</td></tr>
+    <tr><td><b>Audit evidence is scattered.</b> Showing an auditor how a tool was approved meant collecting the risk assessment, approval email, vendor documents and the policy version in force, split between a GRC platform and shared folders.</td><td>Confirms evidence packs as worth keeping.</td></tr>
+    <tr><td><b>Slow governance blocks useful AI too.</b> One team's automation stalled because nobody could say what evidence would satisfy the review, so the team kept its manual process.</td><td>Supports the core bet: a fast approved path matters as much as blocking.</td></tr>
+  </tbody></table>
+  <p class="src" style="margin-top:12px">Still unknown: how often this happens, whether it has a budget and an owner, and whether existing security and procurement tools already cover it. The next round adds two questions on money: what they spend on this today, in tools and staff time, and who approves that spend.</p>
   <h3 class="reveal" style="margin-top:48px;font-size:20px">What I am assuming, and how I would test it</h3>
-  <p class="big reveal" style="font-size:16px">Umbra is a personal project and has not been tested with customers. These are the bets it rests on, the test I would run first, and the result that would change the product.</p>
+  <p class="big reveal" style="font-size:16px">Umbra is a personal project with no users yet. These are the bets it rests on, the test I would run first, and the result that would change the product.</p>
   <table class="reveal" style="margin-top:12px"><thead><tr><th>Assumption</th><th>How I would test it</th><th>What would change my mind</th></tr></thead><tbody>
     <tr><td><b>Security leads cannot see most of the AI their employees use.</b></td><td>Five interviews with security leads at regulated companies of 500 to 5,000 people. Ask each to list the AI tools in use, then compare with a read-only scan of their logs.</td><td>Their existing network tools already give them a complete list. Then discovery is not the wedge, and Umbra should lead with prompt guidance or agent control.</td></tr>
     <tr><td><b>Guidance in the moment works better than blocking.</b></td><td>A pilot with one team, coaching by default, tracking how often people override a suggestion.</td><td>People override most suggestions. Then the guidance is noise, and the rules need to be fewer and stricter.</td></tr>
     <tr><td><b>The Demand Map gives the CIO a reason to back the purchase.</b></td><td>Show a sample Demand Map to three CIOs or transformation leads and ask what they would fund from it.</td><td>None would act on it. Then Umbra is a security purchase only, priced and sold that way.</td></tr>
     <tr><td><b>Drafting rules from plain English saves real time.</b></td><td>Time five analysts writing ten policies, with and without Corona, and check both sets against the same answer key.</td><td>It is not faster, or the drafts need so much fixing that the time saved disappears.</td></tr>
   </tbody></table>
+
+  <h3 class="reveal" style="margin-top:48px;font-size:20px">From one outcome to what I built</h3>
+  <p class="big reveal" style="font-size:16px">Each part of the product answers one problem under a single outcome, and each has a test that could prove it wrong.</p>
+  <div class="tree reveal">
+    <div class="root"><small>Outcome</small><b>More AI work done on approved tools, safely</b></div>
+    <div class="stem"></div><div class="bar"></div>
+    <div class="branches">
+      <div class="branch"><div class="stem"></div>
+        <div class="node opp"><small>Problem</small>Security cannot see which AI people use.</div><div class="stem"></div>
+        <div class="node"><small>What I built</small>Discovery from logs the company already has, offered as a free 48-hour scan.</div><div class="stem"></div>
+        <div class="node test"><small>Test</small><b>Partly supported:</b> in five conversations, the lists teams built from procurement and alerts missed tools. Next: compare one list with a read-only log scan.</div>
+      </div>
+      <div class="branch"><div class="stem"></div>
+        <div class="node opp"><small>Problem</small>Blocking pushes AI use out of sight.</div><div class="stem"></div>
+        <div class="node"><small>What I built</small>Masking and coaching in the moment, with hard blocks kept for secrets and regulated data.</div><div class="stem"></div>
+        <div class="node test"><small>Test</small>A pilot with one team, coaching on, tracking how often people override it. <b>Not yet run.</b> A related signal: one slow review kept a team on its manual process.</div>
+      </div>
+      <div class="branch"><div class="stem"></div>
+        <div class="node opp"><small>Problem</small>Turning a written policy into rules takes too long.</div><div class="stem"></div>
+        <div class="node"><small>What I built</small>Corona drafts rules from plain English, and fixed rules enforce them.</div><div class="stem"></div>
+        <div class="node test"><small>Test</small><b>Run:</b> 43 of 51 drafted right, against 28 for rules alone. Next: time five analysts with and without it.</div>
+      </div>
+    </div>
+  </div>
 
 </div></section>
 
@@ -244,6 +289,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
   </div>
 
   <h3 class="reveal" style="margin-top:48px;font-size:20px">How I would judge a 90-day pilot</h3>
+  <p class="big reveal" style="font-size:16px"><b>The pilot's one goal:</b> make the approved tool the one people reach for first. The four measures below show whether it happened.</p>
   <table class="reveal" style="margin-top:12px"><thead><tr><th>Metric</th><th>Role</th><th>Target</th><th>Why this number</th></tr></thead><tbody>
     <tr><td><b>Share of AI work on approved tools</b></td><td>North star</td><td>Up 20 points from the scan</td><td>It rises only when approved tools are good enough that people choose them.</td></tr>
     <tr><td><b>Exposures reaching a vendor, per 1,000 employees</b></td><td>Protection</td><td>Half the scan baseline</td><td>The risk the CISO is paying to reduce.</td></tr>
@@ -326,7 +372,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <tr><td><b>Microsoft Agent 365</b></td><td>Registers and governs agents built with Microsoft tools, and it is bundled into licences many companies already pay for.</td><td>Centred on Microsoft's own agents. Umbra's case is the tools and agents outside one vendor.</td></tr>
   </tbody></table>
   <div class="cols c3" style="margin-top:22px">
-    <div class="card reveal"><h3>Where Umbra wins</h3><p>A lean security team that needs coverage in weeks, not a six-month rollout, and a CIO who wants a list of where to invest. Umbra is better for that buyer, not for everyone.</p></div>
+    <div class="card reveal"><h3>Where Umbra wins</h3><p>A lean security team that needs coverage in weeks, not a six-month rollout, and a CIO who wants a list of where to invest. Umbra is better for that buyer, not for everyone. My read is that large suites will be slow to chase it: their pricing, rollout and sales teams are built around big enterprises.</p></div>
     <div class="card reveal"><h3>Who should not buy it</h3><p>A company with a large security team already standardised on one suite, or one whose AI use is mostly models it builds itself. A governance platform fits them better.</p></div>
     <div class="card reveal"><h3>What can slow a rollout</h3><p>The customer's own security review, a SOC 2 report, single sign-on and data residency. The read-only scan is designed to get through that review first, because it installs nothing and stores findings rather than prompt text.</p></div>
   </div>
@@ -342,12 +388,12 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <div class="card reveal"><h3>Later</h3><ul><li>An open format for agent permissions that works across platforms</li><li>Reports that cyber insurers can accept</li><li>Automatic fixes, always approved by a person</li></ul></div>
   </div>
   <h3 class="reveal" style="margin-top:48px;font-size:20px">How I prioritised the next quarter</h3>
-  <p class="big reveal" style="font-size:16px">Scored with RICE: reach is how many of ten pilot customers it touches, impact runs from 0.25 to 3, confidence is how sure I am of both, and effort is in person-weeks. These are my estimates, and the point of writing them down is that they can be argued with.</p>
+  <p class="big reveal" style="font-size:16px">Scored with RICE: reach is how many of ten pilot customers it touches, impact runs from 0.25 to 3, confidence is how sure I am of both, and effort is in person-weeks. These are my estimates, and the point of writing them down is that they can be argued with. Discovery moved the approval workflow up from 2.8: two of five people described inconsistent or slow reviews, and a third struggled to assemble approval evidence for an auditor.</p>
   <table class="reveal" style="margin-top:12px"><thead><tr><th>Backlog item</th><th>Reach</th><th>Impact</th><th>Confidence</th><th>Effort</th><th>Score</th></tr></thead><tbody>
     <tr><td><b>Board-ready Demand Map report</b></td><td>9</td><td>1</td><td>90%</td><td>1</td><td><b>8.1</b></td></tr>
     <tr><td><b>Catch a dropped condition before a person sees the draft</b></td><td>10</td><td>2</td><td>80%</td><td>2</td><td><b>8.0</b></td></tr>
+    <tr><td><b>Tool approval workflow with vendor facts filled in</b></td><td>9</td><td>2</td><td>90%</td><td>4</td><td><b>4.1</b></td></tr>
     <tr><td><b>Send incidents to the customer's SIEM</b></td><td>7</td><td>1</td><td>80%</td><td>2</td><td>2.8</td></tr>
-    <tr><td><b>Tool approval workflow with vendor facts filled in</b></td><td>8</td><td>2</td><td>70%</td><td>4</td><td>2.8</td></tr>
     <tr><td><b>Production-ready agent gateway</b></td><td>4</td><td>3</td><td>50%</td><td>10</td><td>0.6</td></tr>
     <tr><td><b>Draft the genuine half of a hostile sentence</b></td><td>3</td><td>1</td><td>50%</td><td>3</td><td>0.5</td></tr>
   </tbody></table>
@@ -355,6 +401,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
     <div class="card reveal"><h3>Deferred on purpose: the agent gateway</h3><p>It has the highest impact on the list, and the lowest confidence. Most mid-sized companies run a handful of agents today, and Outpost already covers the day-to-day running of them. I would build it when three pilot customers have agents in production.</p></div>
     <div class="card reveal"><h3>Not on the list at all</h3><p>A model that makes the final enforcement decision. It would score well on reach and it would demo well, and it breaks the promise the product is built on: the same input always gets the same answer.</p></div>
   </div>
+  <div class="card reveal" style="margin-top:18px"><h3>The cheaper test I would run first</h3><p>I built Umbra before testing it with customers. The smaller first test would have been the 48-hour scan alone, done by hand on one company's logs, before any console existed. It is still the first thing I would run now, because if the scan finds nothing staff do not already admit to, most of the product is not needed.</p></div>
   <table class="reveal" style="margin-top:34px"><thead><tr><th>Risk</th><th>How I would handle it</th></tr></thead><tbody>
     <tr><td><b>Too many false alarms</b></td><td>Guidance is the default, hard blocks are kept for secrets and regulated data, and every rule change is tested on past traffic first. The override rate is tracked closely.</td></tr>
     <tr><td><b>Employees feel watched</b></td><td>Checks run on the employee's device, and Umbra stores what it found rather than the text itself. People can see exactly what was masked and why, which also makes it easier to explain to works councils.</td></tr>
