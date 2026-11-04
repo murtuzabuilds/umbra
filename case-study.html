@@ -106,6 +106,10 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 .tree .node.opp{color:var(--ink)}.tree .node.test b{color:var(--corona);font-weight:500}
 @media(max-width:900px){.tree .branches{grid-template-columns:1fr}.tree .bar{display:none}}
 </style>
+<style>/* no single word left alone on the last line */
+h1,h2,h3,h4{text-wrap:balance}
+p,li,dd,td,figcaption,blockquote,.lede{text-wrap:pretty}
+</style>
 </head>
 <body>
 <nav class="top"><span id="navmark"></span><b>UMBRA</b><span class="sp"></span><a href="#thesis">Thesis</a><a href="#product">Product</a><a href="#gtm">GTM</a><a href="#brand">Brand</a><a class="cta" href="index.html">Try the console</a></nav>
@@ -515,5 +519,9 @@ function frame(now) {
 }
 requestAnimationFrame(frame);
 </script>
+<script>/* keep the last two words of a paragraph, cell or heading together, so no single word sits alone on the last line */
+(function(){var run=function(){document.querySelectorAll('p,li,dd,td,figcaption,blockquote,h2,h3').forEach(function(e){if(e.closest('svg,pre,code,[contenteditable]'))return;var w=document.createTreeWalker(e,NodeFilter.SHOW_TEXT),n,last=null;while(n=w.nextNode()){if(/\S/.test(n.textContent))last=n}
+if(!last||(e.textContent||'').trim().split(/\s+/).length<4)return;var t=last.textContent,m=t.match(/^([\s\S]*?)(\S+) (\S+\s*)$/);if(m&&(m[2]+m[3]).trim().length<=24)last.textContent=m[1]+m[2]+' '+m[3];});};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();addEventListener('load',function(){run();setTimeout(run,1500);});})();</script>
 </body>
 </html>
