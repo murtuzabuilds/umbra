@@ -94,7 +94,8 @@ Plain JavaScript with no dependencies. The engine lives in `src/` and everything
 | `detect.js` | Finds sensitive data and confirms matches (Luhn for cards, IBAN checksums, SSN rules), then masks it |
 | `policy.js` | Rules as data. The strictest matching rule wins, and every decision records which rules applied |
 | `agents.js` | The crew and Agent 7f3, owners and limits, call checks, chain depth, and exposure through other agents |
-| `corona.js` | The AI layer: rule drafting, spotting AI services that are not in the catalog, checks for hidden instructions in agent messages, incident summaries |
+| `corona.js` | Corona's rule-based parts: the fallback rule parser, spotting AI services that are not in the catalog, checks for hidden instructions in agent messages, and the incident templates |
+| `writer.js` | Corona's writing: asks the model for incident summaries and the weekly brief, and rejects any number that is not in the facts |
 | `drafter.js` | Rule drafting in the browser: asks the model through `worker/`, falls back to the rules-based parser |
 | `models.js` | The Models screen: which models agents may run on, which agents depend on each, and pausing a model |
 | `org.js` | Kestrel Mutual, the made-up insurer: staff, teams, approved tools and the agent owners |
@@ -109,11 +110,11 @@ Plain JavaScript with no dependencies. The engine lives in `src/` and everything
 | `index.js` | Runs everything, plus the maturity scale and the AI inventory export |
 
 ```bash
-npm test      # 70 tests
+npm test      # 85 tests
 npx serve .   # open the demo
 ```
 
-Rule drafting in Policies calls a real model: `openai/gpt-oss-120b` on Groq, through the small Worker in `worker/`. If the model is paused or cannot be reached, Umbra drafts with its rules-based parser and says so. The other Corona skills (recognising AI endpoints that are not in the catalog, incident summaries and the weekly brief) are simple local stand-ins so the demo runs offline and costs nothing. In a real product each would call a model limited to the same output format, and none of them would ever make the final decision.
+Corona uses a real model, `openai/gpt-oss-120b` on Groq, through the small Worker in `worker/`, for two jobs. It drafts rules in Policies, and it writes the incident summaries and the weekly brief from facts Umbra already computed. Every number in a summary must appear in those facts, checked in the Worker and again in the browser; if one does not, or the model is paused or cannot be reached, Umbra shows its own template and says so. Recognising AI endpoints that are not in the catalog and checking agent messages for hidden instructions stay with fixed rules on purpose: a model reading a hostile message can be talked round by it. None of this makes a decision: fixed rules and people do.
 
 ## Business model (proposed)
 

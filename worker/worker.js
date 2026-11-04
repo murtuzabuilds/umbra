@@ -14,6 +14,7 @@
 // Endpoints: GET /health, GET /models?provider=, POST /draft {"say": "...", "provider"?: "groq"},
 //            POST /category {"merchant": "..."}  (CardRight)
 //            POST /plan {"intention": "...", "why"?: "...", "days": 90}  (Conatus)
+//            POST /write {"kind": "incident"|"brief", "facts": {...}, "template": {...}}  (Umbra's incident summaries and weekly brief)
 
 /* ---------- Umbra's rule language (keep in step with src/policy.js) ---------- */
 export const ACTIONS = ['allow', 'coach', 'redact', 'require_approval', 'block'];
@@ -143,6 +144,49 @@ export function parsePlan(text) {
   return { plan: { domain: CN_DOMAINS.includes(o.domain) ? o.domain : 'general', milestones, weekly, habit, care: o.care === true, careNote: o.care === true ? (line(o.careNote, 160) || '') : '' } };
 }
 
+/* ---------- Umbra's writing: incident summaries and the weekly brief ---------- */
+// The model rewrites facts Umbra already computed. It may not add a number: every number it writes must
+// appear in the facts or the template, or the answer is refused and Umbra shows its own template.
+const NUM_WORDS = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90, twenty: 20, thirty: 30, hundred: 100, thousand: 1000, once: 1, twice: 2 };
+export function numbersIn(text) {
+  const s = String(text || '').toLowerCase();
+  const out = (s.match(/\d[\d,]*(?:\.\d+)?/g) || []).map(n => n.replace(/,/g, '').replace(/\.0+$/, ''));
+  for (const w of s.match(/[a-z]+/g) || []) if (w in NUM_WORDS) out.push(String(NUM_WORDS[w]));
+  return out;
+}
+export function grounded(writing, ...sources) {
+  const known = new Set(sources.flatMap(x => numbersIn(typeof x === 'string' ? x : JSON.stringify(x))));
+  known.add('1');
+  const stray = [...new Set(numbersIn(writing).filter(n => !known.has(n)))];
+  return { ok: stray.length === 0, stray };
+}
+const WRITE_SYSTEM = {
+  incident: `You write for Umbra, an AI governance console at a company. You get the facts of one security incident and a plain template written from them.
+Write two things in plain, calm English:
+- "analyst": 2 or 3 sentences for the security analyst: what happened, why it matters, and the first thing to do.
+- "employee": 1 or 2 short sentences to the person involved, by first name, kind and never blaming, saying what to do next (or that nothing is needed).
+Rules: use only the facts given. Do not add any number, date, name, tool or claim that is not in the facts or the template. Write numbers as digits. No markdown, no lists, no greetings beyond the first name.
+Return JSON only: {"analyst": "...", "employee": "..."}`,
+  brief: `You write the weekly brief for Umbra, an AI governance console, for the company's security lead. You get the week's facts and Umbra's plain template.
+Write up to 4 short paragraphs (1 or 2 sentences each), most urgent first, in plain, direct English. Say what needs a decision this week and why.
+Rules: use only the facts given. Do not add any number, name, tool or claim that is not in the facts or the template. Write numbers as digits. No markdown, no lists, no headings.
+Return JSON only: {"paras": ["...", "..."]}`,
+};
+export function buildWriteMessages(kind, facts, template) {
+  return { system: WRITE_SYSTEM[kind], user: `Facts:\n${JSON.stringify(facts)}\n\nTemplate:\n${JSON.stringify(template)}` };
+}
+const tidy = (v, n) => typeof v === 'string' ? v.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, n) : '';
+export function parseWriting(kind, text, facts, template) {
+  let o; try { o = JSON.parse(String(text || '').replace(/^```(?:json)?|```$/g, '').trim()); } catch { return { error: 'unreadable' }; }
+  const out = kind === 'incident'
+    ? { analyst: tidy(o?.analyst, 600), employee: tidy(o?.employee, 400) }
+    : { paras: (Array.isArray(o?.paras) ? o.paras : []).slice(0, 5).map(p => tidy(p, 420)).filter(Boolean) };
+  const words = kind === 'incident' ? `${out.analyst} ${out.employee}` : out.paras.join(' ');
+  if (kind === 'incident' ? !out.analyst || !out.employee : !out.paras.length) return { error: 'empty' };
+  const g = grounded(words, facts, template);
+  return g.ok ? out : { error: 'ungrounded', stray: g.stray };
+}
+
 /* ---------- providers ---------- */
 /** Google retires model names and blocks some for new keys, so a 404 or 400 on one name moves on to the next. */
 export const GEMINI_FALLBACKS = ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite', 'gemini-flash-latest'];
@@ -240,6 +284,22 @@ export async function handle(request, rawEnv, fetchImpl = fetch) {
     try {
       const out = await (pp === 'groq' ? callGroq : callGemini)(env, buildPlanMessages(intention, why, days), fetchImpl);
       return json({ ...parsePlan(out.text), provider: pp, model: out.model }, 200, h);
+    } catch (e) {
+      return json({ error: 'The model is unavailable right now.', detail: String(e.message || e).slice(0, 240) }, 502, h);
+    }
+  }
+  if (url.pathname === '/write' && request.method === 'POST') {
+    let b = {};
+    try { b = await request.json(); } catch { /* empty */ }
+    const kind = b.kind === 'incident' || b.kind === 'brief' ? b.kind : '';
+    const size = JSON.stringify(b.facts || '').length + JSON.stringify(b.template || '').length;
+    if (!kind || !b.facts || typeof b.facts !== 'object' || size > 6000) return json({ error: 'Send kind (incident or brief), facts and a template, under 6,000 characters.' }, 400, h);
+    const pw = (b.provider === 'groq' || b.provider === 'gemini') ? b.provider : provider;
+    if (!(pw === 'groq' ? env.GROQ_API_KEY : env.GEMINI_API_KEY)) return json({ error: `No ${pw} key set.` }, 503, h);
+    try {
+      const out = await (pw === 'groq' ? callGroq : callGemini)(env, buildWriteMessages(kind, b.facts, b.template || {}), fetchImpl);
+      const w = parseWriting(kind, out.text, b.facts, b.template || {});
+      return json({ ...w, provider: pw, model: out.model }, w.error ? 422 : 200, h);
     } catch (e) {
       return json({ error: 'The model is unavailable right now.', detail: String(e.message || e).slice(0, 240) }, 502, h);
     }

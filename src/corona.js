@@ -149,6 +149,7 @@ export function narrate(incident) {
   const service = String(incident.user.id).startsWith('svc-');
   const owners = `For the ${incident.user.team} team, owners of ${incident.user.name}: this service sends data to ${where}`;
   return {
+    outcome: outcomeFor(incident, where, what),
     analyst: `${incident.kind === 'oauth' ? `${where} asked ${who} for access to company data ${incident.count} time${incident.count === 1 ? '' : 's'} ${span}.` : `${who} used ${where} ${incident.count} time${incident.count === 1 ? '' : 's'} ${span}, involving ${involving}.`} ${outcomeFor(incident, where, what)} ${incident.recommendation}`,
     employee: service
       ? (!incident.service

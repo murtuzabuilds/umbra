@@ -211,3 +211,22 @@ input[type=checkbox]{accent-color:var(--plasma)}
 .scroll-hint{display:none;font:10.5px var(--mono);letter-spacing:.06em;color:var(--ink3);margin:2px 0 6px}
 @media(max-width:620px){.scroll-hint{display:block}}
 .cn-hover text{opacity:0;transition:opacity .15s}.cn-hover:hover text,.cn-hover:focus-within text{opacity:1}
+/* Who calls what: interactive graph */
+#gx .gn,#gx .ge{cursor:pointer;transition:opacity .2s ease}
+#gx .gn:hover rect,#gx .gn:focus-visible rect{stroke-width:2;stroke-opacity:1}
+#gx .gn:focus{outline:none}
+#gx .gn.sel rect{stroke-width:2.4;stroke-opacity:1}
+#gx .ge:hover path:not(.ge-hit){stroke-opacity:1}
+#gx.focus .gn:not(.hot),#gx.focus .ge:not(.hot){opacity:.16}
+#gx.focus .ge.hot path:not(.ge-hit){stroke-opacity:1}
+.gx-panel{margin-top:12px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02)}
+.gx-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.gx-head b{font-weight:500;font-size:15px;color:var(--ink)}
+.gx-panel h4{margin:12px 0 4px;font:10.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink4)}
+.gx-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.gx-row .mono{color:var(--ink3);font-size:11.5px}
+.gx-link{background:none;border:0;padding:0;color:var(--ink);font:inherit;cursor:pointer;text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:3px}
+.gx-link:hover{text-decoration-color:currentColor}
+.gx-lim{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12.5px;margin-top:8px}
+.gx-lim span{color:var(--ink4)}
+.gx-lim b{font-weight:400;color:var(--ink2)}

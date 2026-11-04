@@ -49,9 +49,13 @@ const PATTERNS = [
   ['jwt', 'SECRET', /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g, null, 'Session token (JWT)'],
   ['private_key', 'SECRET', /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g, null, 'Private key'],
   ['mrn', 'PHI', /\bMRN[:# ]*\d{6,10}\b/gi, null, 'Medical record number'],
+  ['dob', 'PII', /\b(?:DOB|date of birth|born on)[:\s]*\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}\b/gi, null, 'Date of birth'],
+  ['condition', 'PHI', /\b(?:diagnosed with|treated for|prescribed)\s+(?:type [12] )?[a-z][a-z'-]{2,}(?: [a-z][a-z'-]{2,}){0,3}/gi, null, 'Medical condition'],
   ['icd10', 'PHI', /\b(?:diagnos(?:is|ed)|ICD-10)[^.\n]{0,40}\b[A-TV-Z]\d{2}(?:\.\d{1,4})?\b/gi, null, 'Diagnosis code'],
 ];
 
+// One line is enough when it is plainly a function definition; weaker hints need a block of at least three lines.
+const CODE_STRONG = /(\bdef\s+\w+\([^)]*\)\s*:|\bfunction\s+\w+\s*\([^)]*\)\s*{|\b(?:public|private)\s+(?:static\s+)?\w+\s+\w+\s*\([^)]*\)\s*{)/;
 const CODE_HINTS = /(\bfunction\s+\w+\s*\(|\bdef\s+\w+\(|\bclass\s+\w+[:({]|\bimport\s+[\w{]|=>\s*{|\bSELECT\s+.+\s+FROM\b|#include\s*<)/i;
 const CONF_MARKERS = /\b(confidential|internal only|do not distribute|attorney[- ]client|privileged|under nda|board (?:deck|materials))\b/i;
 
@@ -64,7 +68,7 @@ export function detect(text, dict = {}) {
   const out = [];
   for (const [type, cls, re, ok, label] of PATTERNS) {
     for (const m of t.matchAll(re)) {
-      const v = m[0];
+      const v = m[0].replace(/[ -]+$/, ''); // a card pattern can swallow the space after it; keep that space in the text
       if (ok && !ok(v)) continue;
       out.push({ type, class: cls, label, value: v, start: m.index, end: m.index + v.length, rule: `detect.${type}` });
     }
@@ -79,7 +83,7 @@ export function detect(text, dict = {}) {
   }
   const conf = t.match(CONF_MARKERS);
   if (conf) out.push({ type: 'marker', class: 'CONF', label: 'Confidentiality marker', value: conf[0], start: conf.index, end: conf.index + conf[0].length, rule: 'detect.marker' });
-  if (CODE_HINTS.test(t) && t.split('\n').length >= 3) {
+  if (CODE_STRONG.test(t) || (CODE_HINTS.test(t) && t.split('\n').length >= 3)) {
     out.push({ type: 'source_code', class: 'IP', label: 'Source code', value: '(code block)', start: 0, end: 0, rule: 'detect.source_code' });
   }
   // A span can match several patterns (a card inside an IBAN, an email inside a URL). Keep the first, longest.

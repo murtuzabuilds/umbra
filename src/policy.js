@@ -44,7 +44,7 @@ export function alternativeFor(service, org) {
   return SERVICES.find(s => org.sanctioned.includes(s.id) && s.category === service.category && s.id !== service.id) || null;
 }
 
-export function evaluate(event, policies, org) {
+export function evaluate(event, policies, org, { suggest = true } = {}) {
   const c = context(event, org);
   const trace = [];
   let action = 'allow', decidedBy = null;
@@ -59,7 +59,14 @@ export function evaluate(event, policies, org) {
     if (matched && RANK[p.action] > RANK[action]) { action = p.action; decidedBy = p; }
     else if (matched && !decidedBy) decidedBy = p;
   }
-  const alternative = ['coach', 'block', 'redact'].includes(action) && !c.sanctioned ? alternativeFor(c.service, org) : null;
+  // Suggest an approved tool only when sending the same message there would actually go through.
+  let alternative = suggest && ['coach', 'block', 'redact'].includes(action) && !c.sanctioned ? alternativeFor(c.service, org) : null;
+  if (alternative) {
+    const there = evaluate({ ...event, service: alternative, host: alternative.domains?.[0] }, policies, org, { suggest: false });
+    if (there.action === 'block' || there.action === 'require_approval') alternative = null;
+  }
+  const advice = decidedBy?.id === 'P-01' || (action === 'block' && c.classes.includes('SECRET'))
+    ? 'Remove the key from your message. Treat it as exposed and rotate it.' : null;
   return {
     eventId: event.id,
     action,
@@ -72,6 +79,7 @@ export function evaluate(event, policies, org) {
     classes: c.classes,
     redacted: action === 'redact' && event.text ? redact(event.text, c.findings) : null,
     alternative,
+    advice,
     trace,
   };
 }
@@ -81,7 +89,6 @@ export function explain(d) {
   const lines = [`Decision: ${d.action.replace('_', ' ')} (rule ${d.rule}).`];
   lines.push(`Service: ${d.service ? `${d.service.name}, ${d.sanctioned ? 'approved' : 'not approved'}, risk ${d.risk}` : `unrecognised AI endpoint, risk ${d.risk}`}.`);
   if (d.findings.length) lines.push(`Found: ${d.findings.map(f => labelWords(f.label)).join(', ')}.`);
-  if (d.alternative) lines.push(`Approved alternative: ${d.alternative.name}.`);
   return lines.join(' ');
 }
 

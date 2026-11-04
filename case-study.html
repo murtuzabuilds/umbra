@@ -234,7 +234,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 <section id="product"><div class="wrap">
   <div class="label reveal">05 &nbsp;The product</div>
   <h2 class="reveal">A console for <em>the whole picture.</em></h2>
-  <p class="big reveal">Everything below works in the interactive demo (sample data), which runs on a tested engine (70 tests). The demo company is Kestrel Mutual, a made-up insurer with 2,400 staff and 30 days of generated activity.</p>
+  <p class="big reveal">Everything below works in the interactive demo (sample data), which runs on a tested engine (85 tests). The demo company is Kestrel Mutual, a made-up insurer with 2,400 staff and 30 days of generated activity.</p>
   <div>
     <div class="feature reveal"><div class="txt"><span class="tag">Overview</span><h3>How much of your AI use <em>you can actually see</em></h3><p>The Overview starts with the share of AI activity Umbra can see and classify. Next to it are the share of work on approved tools, how much sensitive data was contained, how many incidents are open, and a short weekly summary from Corona (AI assistant) with the most useful next steps. In the middle is Umbra at the centre: every AI tool at Kestrel Mutual on orbit, and each ring around a tool is a control that applies to it. Approved tools sit inside all six rings, unapproved ones further out, high-risk ones near the edge.</p></div><div class="shot"><img src="docs/totality.webp" alt="Umbra Overview with Umbra at the centre" loading="lazy"></div></div>
     <div class="feature reveal"><div class="txt"><span class="tag">AI map</span><h3>Every AI service <em>on one map</em></h3><p>Distance from the centre shows risk, size shows usage, and colour shows whether it is approved. Risk is computed from facts a buyer can verify: whether the vendor trains on inputs, how long it keeps them, which attestations it holds and where it processes data. Corona can also recognise AI services that are not in the catalog, just from the shape of the traffic.</p></div><div class="shot"><img src="docs/constellation.webp" alt="AI map of every service in use" loading="lazy"></div></div>
@@ -299,7 +299,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
   <p class="src" style="margin-top:12px">These are my targets for a pilot, not results. I would stop and rethink if the scan finds no more tools than staff already admit to, or if overrides stay above 30% after the rules are tuned.</p>
 
   <h2 class="reveal" style="margin-top:80px">The one real model, <em>measured before it shipped.</em> <span class="ev ev-eval" title="Measured on a fixed test set"><i></i>Evaluation</span></h2>
-  <p class="big reveal">Corona's rule drafting is the only place a model works inside Umbra, so it is the one place I had to prove it helps. The test set has 51 policy sentences with an answer key, and I reviewed every sentence and expected rule before the model was scored. It runs from plain wording to paraphrases, several conditions at once, sentences that should be flagged instead of drafted, and attempts to talk the model into an allow-everything rule. A case passes only if the draft matches the key, or if the model raises a doubt where it should. These are real results, not sample data.</p>
+  <p class="big reveal">Corona uses a model for two things: drafting rules, and writing incident summaries and the weekly brief. Drafting is the one where a wrong answer could change what gets enforced, so it is the one I had to prove helps. Summaries are guarded differently: any summary with a number that is not in the incident record is rejected, and Umbra shows its own template. The test set has 51 policy sentences with an answer key, and I reviewed every sentence and expected rule before the model was scored. It runs from plain wording to paraphrases, several conditions at once, sentences that should be flagged instead of drafted, and attempts to talk the model into an allow-everything rule. A case passes only if the draft matches the key, or if the model raises a doubt where it should. These are real results, not sample data.</p>
   <table class="reveal" style="margin-top:24px"><thead><tr><th>Group of sentences</th><th>Model</th><th>Rules-based parser</th></tr></thead><tbody>
     <tr><td>Plain wording</td><td>11 of 12</td><td>8 of 12</td></tr>
     <tr><td>Paraphrases</td><td><b>9 of 12</b></td><td>2 of 12</td></tr>
@@ -343,7 +343,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 
 
 <section id="gtm"><div class="wrap">
-  <div class="label reveal">09 &nbsp;Go to market</div>
+  <div class="label reveal">09 &nbsp;Go-to-market</div>
   <h2 class="reveal">Start with <em>mid-sized, regulated companies.</em></h2>
   <div class="cols c3" style="margin-bottom:22px">
     <div class="card stat reveal"><b>$492M</b><p>forecast spending on AI governance platforms in 2026, passing $1 billion by 2030.</p><small><a href="https://www.gartner.com/en/newsroom/press-releases/2026-02-17-gartner-global-ai-regulations-fuel-billion-dollar-market-for-ai-governance-platforms" target="_blank" rel="noopener">Gartner, Feb 2026</a></small></div>
