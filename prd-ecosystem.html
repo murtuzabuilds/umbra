@@ -211,7 +211,7 @@ details.dd.up .dd-menu{top:auto;bottom:calc(100% + 10px)}
     <tr><td><b>Owner</b></td><td>Umbra reviewer</td><td>Required. No owner, no docking.</td></tr>
     <tr><td><b>Approved model</b></td><td>Umbra reviewer</td><td>Must be an approved model. An agent found on an unapproved one is moved to an approved one before docking.</td></tr>
     <tr><td><b>Badge (permitted tools)</b></td><td>Umbra reviewer</td><td>Required. Outpost stops any tool not on it before the tool runs.</td></tr>
-    <tr><td><b>Money limit</b></td><td>Umbra reviewer</td><td>Never above the locked $1,000 ceiling. A bad value is refused, never loosened.</td></tr>
+    <tr><td><b>Money limit</b></td><td>Umbra reviewer</td><td>The ceiling for this agent. Trust earned in Outpost raises what the bot may move alone, but never above this ceiling or the locked $1,000. A bad value is refused, never loosened.</td></tr>
     <tr><td><b>Starting trust</b></td><td>Fixed</td><td>Always Supervised. Trust is earned in Outpost, never granted in the handoff.</td></tr>
     <tr><td><b>Approval reference</b></td><td>Umbra</td><td>Links the bot's logbook back to the decision that admitted it.</td></tr>
   </tbody></table>
@@ -234,7 +234,7 @@ details.dd.up .dd-menu{top:auto;bottom:calc(100% + 10px)}
     <tr><td>E1</td><td>Dock an approved agent with owner, model, badge and limit, starting Supervised</td><td>P0</td><td>Built in the demo</td></tr>
     <tr><td>E2</td><td>Refuse a handoff with no owner, no tools or a bad limit, with a named reason</td><td>P0</td><td>Built in the demo</td></tr>
     <tr><td>E3</td><td>Pausing a model stops every dependent bot; resume only from Umbra</td><td>P0</td><td>Built in the demo</td></tr>
-    <tr><td>E4</td><td>Outpost can narrow an agent's permissions, never widen them beyond Umbra's approval</td><td>P0</td><td>Proposed</td></tr>
+    <tr><td>E4</td><td>Outpost can narrow an agent's tools and limit, never widen them beyond Umbra's approval; earned trust works inside that ceiling</td><td>P0</td><td>Proposed</td></tr>
     <tr><td>E5</td><td>Each logbook line carries the approval reference that admitted the bot</td><td>P0</td><td>Proposed</td></tr>
     <tr><td>E6</td><td>Revoke: withdrawing approval removes the bot and returns its open work</td><td>P1</td><td>Proposed</td></tr>
     <tr><td>E7</td><td>Owner change in Umbra updates the bot in Outpost the same minute</td><td>P1</td><td>Proposed</td></tr>
