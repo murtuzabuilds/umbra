@@ -110,9 +110,27 @@ footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--ink3);fo
 h1,h2,h3,h4{text-wrap:balance}
 p,li,dd,td,figcaption,blockquote,.lede{text-wrap:pretty}
 </style>
+<style>/* PRD dropdown */
+nav.top details.dd>summary{font:12px var(--mono);letter-spacing:.08em;color:var(--ink2)}
+details.dd{position:relative;display:inline-block}
+details.dd>summary{list-style:none;cursor:pointer;user-select:none}
+details.dd>summary::-webkit-details-marker{display:none}
+details.dd>summary::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+details.dd[open]>summary::after{transform:translateY(1px) rotate(-135deg)}
+.dd-menu{position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);min-width:300px;padding:6px;border-radius:14px;background:#0B0D14;border:1px solid rgba(214,224,246,.16);box-shadow:0 24px 60px -20px rgba(0,0,0,.8);z-index:50;text-align:left}
+details.dd.right .dd-menu{left:auto;right:0;transform:none}
+details.dd.up .dd-menu{top:auto;bottom:calc(100% + 10px)}
+.dd-menu a{display:block;padding:10px 12px;border-radius:10px;text-decoration:none!important;color:#EEF2FA!important;font:500 14.5px/1.3 system-ui,-apple-system,sans-serif!important;letter-spacing:0!important;background:none!important}
+.dd-menu a small{display:block;margin-top:3px;font:400 10px/1.2 ui-monospace,Menlo,monospace!important;letter-spacing:.14em;text-transform:uppercase;color:#8A92A6}
+.dd-menu a:hover,.dd-menu a:focus-visible{background:rgba(255,255,255,.06)!important}
+.dd-menu hr{border:0;border-top:1px solid rgba(214,224,246,.12);margin:6px 4px}
+.dd-menu a{display:block!important}
+@media(max-width:700px){.dd-menu,details.dd.right .dd-menu,details.dd.up .dd-menu{position:fixed;left:12px;right:12px;top:auto;bottom:12px;transform:none;min-width:0;padding:8px;box-shadow:0 -10px 60px rgba(0,0,0,.7)}.dd-menu a{padding:13px 14px;font-size:16px!important}}
+</style>
+<script>addEventListener('click',function(e){document.querySelectorAll('details.dd[open]').forEach(function(d){if(!d.contains(e.target))d.removeAttribute('open')})});addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('details.dd[open]').forEach(function(d){d.removeAttribute('open')})});</script>
 </head>
 <body>
-<nav class="top"><span id="navmark"></span><b>UMBRA</b><span class="sp"></span><a href="#thesis">Thesis</a><a href="#product">Product</a><a href="#gtm">GTM</a><a href="documents.html">Documents</a><a href="#brand">Brand</a><a class="cta" href="index.html">Try the console</a></nav>
+<nav class="top"><span id="navmark"></span><b>UMBRA</b><span class="sp"></span><a href="#thesis">Thesis</a><a href="#product">Product</a><a href="#gtm">GTM</a><details class="dd right"><summary>PRDs</summary><div class="dd-menu"><a href="prd-umbra.html">Umbra v1<small>Product PRD</small></a><a href="prd-approval.html">AI tool approval<small>Feature PRD</small></a><a href="prd-ecosystem.html">Governed agents<small>Ecosystem PRD &middot; Umbra and Outpost</small></a><hr><a href="documents.html">All documents<small>How they fit together</small></a></div></details><a href="#brand">Brand</a><a class="cta" href="index.html">Try the console</a></nav>
 
 <header class="hero">
   <canvas id="eclipse" aria-hidden="true"></canvas>
@@ -121,7 +139,7 @@ p,li,dd,td,figcaption,blockquote,.lede{text-wrap:pretty}
     <h1>Keep the AI your people rely on.<br><em>Govern what it sees.</em></h1>
     <p class="scene" style="font-style:italic;opacity:.8;margin-bottom:12px">A claims adjuster pastes a customer's file into a free chatbot to save ten minutes. Nobody at the company sees it happen.</p>
     <p>Umbra uses AI to govern AI. It shows a company every AI tool and agent its people use, catches sensitive data before it goes out, and turns the unapproved tools it finds into a list of where to invest in AI next.</p>
-    <div class="btns"><a class="btn primary" href="index.html">Try the console</a><a class="btn" href="documents.html">Read the PRDs</a><a class="btn" href="https://github.com/murtuzabuilds/umbra">Read the code</a></div>
+    <div class="btns"><a class="btn primary" href="index.html">Try the console</a><details class="dd up"><summary class="btn">Read the PRDs</summary><div class="dd-menu"><a href="prd-umbra.html">Umbra v1<small>Product PRD</small></a><a href="prd-approval.html">AI tool approval<small>Feature PRD</small></a><a href="prd-ecosystem.html">Governed agents<small>Ecosystem PRD &middot; Umbra and Outpost</small></a><hr><a href="documents.html">All documents<small>How they fit together</small></a></div></details><a class="btn" href="https://github.com/murtuzabuilds/umbra">Read the code</a></div>
   </div>
   <div class="scroll">SCROLL</div>
 </header>
