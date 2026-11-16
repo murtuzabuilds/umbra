@@ -112,7 +112,7 @@ p,li,dd,td,figcaption,blockquote,.lede{text-wrap:pretty}
 </style>
 </head>
 <body>
-<nav class="top"><span id="navmark"></span><b>UMBRA</b><span class="sp"></span><a href="#thesis">Thesis</a><a href="#product">Product</a><a href="#gtm">GTM</a><a href="#brand">Brand</a><a class="cta" href="index.html">Try the console</a></nav>
+<nav class="top"><span id="navmark"></span><b>UMBRA</b><span class="sp"></span><a href="#thesis">Thesis</a><a href="#product">Product</a><a href="#gtm">GTM</a><a href="prd.html">PRD</a><a href="#brand">Brand</a><a class="cta" href="index.html">Try the console</a></nav>
 
 <header class="hero">
   <canvas id="eclipse" aria-hidden="true"></canvas>
@@ -139,7 +139,7 @@ p,li,dd,td,figcaption,blockquote,.lede{text-wrap:pretty}
     <tr><td><b>Decisions</b></td><td>AI drafts rules and fixed rules enforce them. The agent gateway is deferred, and a model that makes the final call is never built.</td><td><a href="#roadmap">Backlog</a></td></tr>
     <tr><td><b>Evidence</b></td><td>On a 51-sentence test set I wrote, 46 drafts right against 28 for rules alone, 0 unsafe. The misses and failure cases are listed.</td><td><a href="#results">Test</a></td></tr>
     <tr><td><b>What is proven</b></td><td>Proven: it can be built, and the drafting works on my test set. Heard in five conversations: finding AI tools is only partly solved, and approval and audit evidence are a sharper pain. Still assumed: that security leads would pay for it.</td><td><a href="#people">Assumptions</a></td></tr>
-    <tr><td><b>Next step</b></td><td>A read-only log scan with one company, and the tool approval workflow, which discovery moved up the backlog. No users yet.</td><td><a href="#people">Assumptions</a></td></tr>
+    <tr><td><b>Next step</b></td><td>A read-only log scan with one company, and the tool approval workflow, which discovery moved up the backlog. No users yet.</td><td><a href="prd.html">PRD</a></td></tr>
   </tbody></table>
 
 </div></section>
@@ -383,6 +383,29 @@ p,li,dd,td,figcaption,blockquote,.lede{text-wrap:pretty}
     <div class="card reveal"><h3>Who should not buy it</h3><p>A company with a large security team already standardised on one suite, or one whose AI use is mostly models it builds itself. A governance platform fits them better.</p></div>
     <div class="card reveal"><h3>What can slow a rollout</h3><p>The customer's own security review, a SOC 2 report, single sign-on and data residency. The read-only scan is designed to get through that review first, because it installs nothing and stores findings rather than prompt text.</p></div>
   </div>
+  <h3 class="reveal" style="margin-top:56px;font-size:20px">How I would position and launch it</h3>
+  <div class="card reveal" style="margin-top:12px"><h3>Positioning</h3><p>For security and risk leaders at regulated companies of 500 to 5,000 people who know their staff use AI nobody approved, Umbra is the AI governance platform that finds every AI tool in use, stops sensitive data before it reaches one, and decides which agents get in. Unlike tools built mainly to block, it turns what it finds into decisions an auditor can follow and a plan for which approved AI to fund.</p></div>
+  <p class="reveal" style="margin-top:22px"><b>Headline:</b> See every AI your company uses. Decide what gets in.</p>
+  <table class="reveal" style="margin-top:12px"><thead><tr><th>Message</th><th>What it says</th><th>Proof in the demo</th></tr></thead><tbody>
+    <tr><td><b>See it</b></td><td>Every AI tool and agent in use, approved or not.</td><td>11 of 15 AI tools Kestrel staff used had never been approved, in one sample month.</td></tr>
+    <tr><td><b>Control it without stopping work</b></td><td>Mask or coach first. Block only what must be blocked.</td><td>One rule change took sensitive data reaching outside vendors from 22 to 0.</td></tr>
+    <tr><td><b>Prove it</b></td><td>AI drafts, fixed rules enforce, a person approves, and every decision is logged.</td><td>46 of 51 drafts right, against 28 for rules alone, with 0 unsafe.</td></tr>
+    <tr><td><b>Fund what works</b></td><td>Unapproved use shows where teams need approved AI.</td><td>The Demand Map ranks where to roll out approved tools: now, next and later.</td></tr>
+  </tbody></table>
+  <div class="cols c2" style="margin-top:22px">
+    <div class="card reveal"><h3>&ldquo;We already have a security suite.&rdquo;</h3><p>It sees where traffic goes. Umbra adds what it skips: an owner for every AI tool and agent, which agents may enter, and which approved tools to fund. It reads the same logs and sits beside the suite, not in place of it.</p></div>
+    <div class="card reveal"><h3>&ldquo;Is an AI making security calls?&rdquo;</h3><p>No. The model only drafts. Fixed rules enforce, and a person approves every rule before it goes live.</p></div>
+    <div class="card reveal"><h3>&ldquo;We can&rsquo;t staff another tool.&rdquo;</h3><p>That is the point of grouping: in the demo, 888 raw alerts become 62 cases a person can act on.</p></div>
+    <div class="card reveal"><h3>&ldquo;Blocking AI will hurt productivity.&rdquo;</h3><p>Masking and coaching come first. Hard blocks are kept for passwords, keys and regulated data.</p></div>
+  </div>
+  <h3 class="reveal" style="margin-top:48px;font-size:20px">Launch on proof, not on a date</h3>
+  <div class="cols c4" style="margin-top:12px">
+    <div class="card reveal"><small>Weeks 1 to 8</small><h3>Validate</h3><p>Three design partners. The 48-hour scan done by hand on their logs, before more product is built.</p><p style="margin-top:12px"><b>Gate:</b> 2 of 3 find AI use their staff had not reported.</p></div>
+    <div class="card reveal"><small>Months 3 to 6</small><h3>Private beta</h3><p>Five companies with masking and coaching on. The main metric tracked every week.</p><p style="margin-top:12px"><b>Gate:</b> share of AI work on approved tools rising, overrides under 20%.</p></div>
+    <div class="card reveal"><small>Month 7</small><h3>Launch</h3><p>A report on shadow AI in mid-sized regulated companies, built from anonymized beta findings, with a design-partner CISO presenting it. The free scan is the entry offer.</p><p style="margin-top:12px"><b>Gate:</b> 1 in 3 pilots convert to paid.</p></div>
+    <div class="card reveal"><small>Month 9 on</small><h3>Expand</h3><p>The Agents tier with Outpost, sold as one governance layer. Managed security providers and cyber insurers as channels.</p></div>
+  </div>
+  <p class="src" style="margin-top:12px">The launch moment is the report, not the product: security leaders trust peer data, and it gives sales a reason to call that is not a pitch. Phases and targets are my plan for this case study, each set so it can fail.</p>
   <p class="src" style="margin-top:12px">Sources: <a href="https://www.kovrr.com/blog-post/top-ai-governance-platforms-2026-comparison-guide" target="_blank" rel="noopener">AI governance platform comparison, 2026</a> · <a href="https://www.decryptiondigest.com/blog/ai-guardrail-vendors-after-acquisition-lakera-prompt-security-aim-calypsoai" target="_blank" rel="noopener">AI runtime security acquisitions, 2025</a> · <a href="https://www.epcgroup.net/blog/microsoft-agent-365-general-availability-may-2026-registry-sync-aws-google-cloud" target="_blank" rel="noopener">Microsoft Agent 365, May 2026</a></p>
 </div></section>
 
@@ -408,6 +431,7 @@ p,li,dd,td,figcaption,blockquote,.lede{text-wrap:pretty}
     <div class="card reveal"><h3>Deferred on purpose: the agent gateway</h3><p>It has the highest impact on the list, and the lowest confidence. Most mid-sized companies run a handful of agents today, and Outpost already covers the day-to-day running of them. I would build it when three pilot customers have agents in production.</p></div>
     <div class="card reveal"><h3>Not on the list at all</h3><p>A model that makes the final enforcement decision. It would score well on reach and it would demo well, and it breaks the promise the product is built on: the same input always gets the same answer.</p></div>
   </div>
+  <div class="card reveal" style="margin-top:18px"><h3>The PRD for the approval workflow</h3><p>Discovery moved the tool approval workflow up the backlog, so I wrote its requirements: risk tiers, who reviews, what ships first and how I would measure it. <a href="prd.html">Read the PRD</a>.</p></div>
   <div class="card reveal" style="margin-top:18px"><h3>The cheaper test I would run first</h3><p>I built Umbra before testing it with customers. The smaller first test would have been the 48-hour scan alone, done by hand on one company's logs, before any console existed. It is still the first thing I would run now, because if the scan finds nothing staff do not already admit to, most of the product is not needed.</p></div>
   <table class="reveal" style="margin-top:34px"><thead><tr><th>Risk</th><th>How I would handle it</th></tr></thead><tbody>
     <tr><td><b>Too many false alarms</b></td><td>Guidance is the default, hard blocks are kept for secrets and regulated data, and every rule change is tested on past traffic first. The override rate is tracked closely.</td></tr>
